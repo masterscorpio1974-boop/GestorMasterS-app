@@ -17,3 +17,4 @@ android.accept_sdk_license_agreement = True
 
 [buildozer]
 log_level = 2
+pythonforandroid.recipes.libzlib.skip = True
