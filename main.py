@@ -2,6 +2,7 @@ import os, shutil, sqlite3
 from datetime import datetime
 from kivymd.app import MDApp
 from kivy.lang import Builder
+from kivy.uix.scrollview import ScrollView
 
 def init_db():
  os.makedirs("BASE DE DATOS", exist_ok=True)
@@ -96,7 +97,9 @@ class GestorApp(MDApp):
   if self.root.ids.entrada.text: add_info("nota",self.root.ids.entrada.text); self.root.ids.entrada.text=""; self.refresh()
  def guardar_tarea(self):
   if self.root.ids.entrada.text: add_info("tarea",self.root.ids.entrada.text); self.root.ids.entrada.text=""; self.refresh()
- def hacer_informe(self): generar_informe(); self.refresh()
- def hacer_backup(self): hacer_respaldo()
+ def hacer_informe(self):
+  generar_informe(); self.refresh()
+ def hacer_backup(self):
+  hacer_respaldo()
 
 GestorApp().run()

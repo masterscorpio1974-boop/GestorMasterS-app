@@ -8,10 +8,10 @@ version = 1.0
 requirements = python3,kivy==2.3.0,kivymd==1.2.0
 orientation = portrait
 fullscreen = 0
-android.archs = arm64-v8a, armeabi-v7a
-android.permissions = INTERNET, WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE
+android.archs = arm64-v8a
+android.permissions = INTERNET, WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE, MANAGE_EXTERNAL_STORAGE
 android.api = 33
-android.minapi = 21
+android.minapi = 30
 android.ndk = 25b
 android.accept_sdk_license_agreement = True
 
