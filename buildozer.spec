@@ -5,9 +5,9 @@ package.domain = org.scorpiomaster
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,md,txt
 version = 1.0.0
-requirements = python3==3.11.15, hostpython3==3.11.15, kivy==2.3.0, kivymd==1.2.0, markdown, libffi==3.4.6
-android.recipe_python3 = 3.11.15
-android.recipe_hostpython3 = 3.11.15
+requirements = python3==3.11.9, hostpython3==3.11.9, kivy==2.3.0, kivymd==1.2.0, markdown, libffi==3.4.6
+android.recipe_python3 = 3.11.9
+android.recipe_hostpython3 = 3.11.9
 entrypoint = main.py
 fullscreen = 0
 orientation = portrait
