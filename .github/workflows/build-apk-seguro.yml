@@ -1,0 +1,42 @@
+name: Compilar GestorMasterS - Versión Universal Segura
+run-name: Compilando ${{ github.actor }} • v${{ github.sha }}
+
+on:
+  push:
+    branches: [ main, version_estable_anterior ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Obtener todo el código
+        uses: actions/checkout@v4
+
+      - name: 🛠️ Preparar Python y entorno
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: 📦 Instalar todas las herramientas
+        run: |
+          sudo apt update -y
+          sudo apt install -y zip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev
+          python -m pip install --upgrade pip buildozer cryptography
+
+      - name: 📂 Crear estructura segura
+        run: |
+          mkdir -p BASE_DE_DATOS RESPALDOS ARCHIVOS_GENERADOS TEMPORAL DOCS CODIGO
+          chmod 700 BASE_DE_DATOS RESPALDOS
+          chmod 750 ARCHIVOS_GENERADOS TEMPORAL
+
+      - name: 🧩 Iniciar compilación UNIVERSAL
+        run: buildozer android debug
+
+      - name: 📤 Guardar APK listo
+        uses: actions/upload-artifact@v4
+        with:
+          name: GestorMasterS-UNIVERSAL-v1.0.0-Seguro
+          path: bin/*.apk
+          retention-days: 90
+

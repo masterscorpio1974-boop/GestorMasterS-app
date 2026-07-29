@@ -1,20 +1,17 @@
-[app]
-title = Gestor Master
-package.name = gestormaster
-package.domain = com.gestor.master
-source.dir =.
-source.include_exts = py,png,jpg,kv,atlas
-version = 1.0
-requirements = python3,kivy==2.3.0,kivymd==1.2.0
-orientation = portrait
-fullscreen = 0
-android.archs = arm64-v8a
-android.permissions = INTERNET, WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE, MANAGE_EXTERNAL_STORAGE
-android.api = 33
-android.minapi = 30
-android.ndk = 25b
-android.accept_sdk_license_agreement = True
+title = GestorMasterS
+package.name = gestormasters
+package.domain = org.scorpiomaster
+source.dir = .
+version = 1.0.0
 
-[buildozer]
-log_level = 2
-pythonforandroid.recipes.libzlib.skip = True
+# 🔒 SIN PERMISOS INNECESARIOS - SOLO LO QUE TÚ DECIDAS USAR DESPUÉS
+android.permissions =
+android.allowBackup = False
+android.debuggable = False
+android.minapi = 34
+android.api = 34
+android.ndk = 25b
+android.archs = arm64-v8a
+
+requirements = python3, kivy==2.3.0, kivymd==1.2.0, python-dateutil, cryptography
+
