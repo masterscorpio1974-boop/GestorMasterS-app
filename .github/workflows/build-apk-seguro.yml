@@ -39,7 +39,7 @@ jobs:
           chmod 700 DATA BACKUPS
           chmod 755 GENERATED_FILES TEMP DOCS CODIGO
 
-      - name: Copy and run all fixes from your local patches
+      - name: Apply all fixes
         shell: python
         run: |
           import sys, os, pathlib, shutil
@@ -60,7 +60,7 @@ jobs:
                   p.write_text(txt)
           print("✅ ZLIB FIXED")
 
-          # Fix 2: Disable AIDL check EXACTLY like Meta showed you
+          # Fix 2: Disable AIDL check
           p = pathlib.Path(os.path.join(PY_LIB, "buildozer", "targets", "android.py"))
           if p.exists():
               txt = p.read_text()
@@ -105,6 +105,20 @@ jobs:
               if "__pycache__" in dirs:
                   shutil.rmtree(os.path.join(root, "__pycache__"), ignore_errors=True)
           print("✅ ALL PATCHES APPLIED")
+
+      # ==== AQUÍ AGREGAMOS EL ARREGLO DE LIBFFI QUE ME PEDISTE ====
+      - name: Fix libffi build errors
+        shell: python
+        run: |
+          import sys, os, pathlib
+          PFA = os.path.join(os.path.expanduser("~"), ".buildozer", "android", "platform", "python-for-android", "pythonforandroid", "recipes", "libffi")
+          recipe = pathlib.Path(PFA) / "__init__.py"
+          if recipe.exists():
+              txt = recipe.read_text()
+              txt = txt.replace("version = '3.4.4'", "version = '3.4.6'")
+              txt = txt.replace("patches = ['remove-configure.patch']", "patches = ['remove-configure.patch']")
+              recipe.write_text(txt)
+          print("✅ Receta de libffi actualizada a versión compatible")
 
       - name: Build APK
         env:
