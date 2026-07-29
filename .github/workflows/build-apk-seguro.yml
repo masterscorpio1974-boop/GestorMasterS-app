@@ -17,10 +17,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python EXACTA
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.11.15'
+          cache: 'pip'
+
+      - name: Caché de compilación
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.buildozer
+            ~/.cache/pip
+          key: buildozer-${{ hashFiles('buildozer.spec', '.github/workflows/build-apk-seguro.yml') }}
+          restore-keys: |
+            buildozer-
+
+      - name: Limpiar restos antiguos
+        run: |
+          rm -rf ~/.buildozer
+          rm -rf .buildozer
+          rm -rf bin
 
       - name: Install system packages
         run: |
@@ -39,13 +56,13 @@ jobs:
           chmod 700 DATA BACKUPS
           chmod 755 GENERATED_FILES TEMP DOCS CODIGO
 
-      - name: Apply all fixes
+      - name: Apply ALL fixes
         shell: python
         run: |
           import sys, os, pathlib, shutil
           PY_LIB = sys.prefix + "/lib/python3.11/site-packages"
 
-          # Fix 1: Disable zlib check
+          # Fix 1: Desactivar revisión zlib
           targets = [
               os.path.join(PY_LIB, "buildozer", "targets", "android.py"),
               os.path.join(PY_LIB, "pythonforandroid", "recipes", "libzlib", "__init__.py")
@@ -60,7 +77,7 @@ jobs:
                   p.write_text(txt)
           print("✅ ZLIB FIXED")
 
-          # Fix 2: Disable AIDL check
+          # Fix 2: Desactivar revisión AIDL
           p = pathlib.Path(os.path.join(PY_LIB, "buildozer", "targets", "android.py"))
           if p.exists():
               txt = p.read_text()
@@ -69,7 +86,7 @@ jobs:
               p.write_text(txt)
           print("✅ AIDL CHECK DISABLED")
 
-          # Fix 3: Platform and SDK paths
+          # Fix 3: Plataforma y rutas
           if p.exists():
               txt = p.read_text()
               txt = txt.replace("raise SystemError('Unsupported platform: {0}'.format(platform))", "print('PLATFORM CHECK SKIPPED')")
@@ -80,7 +97,7 @@ jobs:
               p.write_text(txt)
           print("✅ PLATFORM FIXED")
 
-          # Fix 4: SDK tools location
+          # Fix 4: Ubicación de herramientas SDK
           p = pathlib.Path(os.path.join(PY_LIB, "buildozer", "targets", "android.py"))
           if p.exists():
               txt = p.read_text()
@@ -90,7 +107,7 @@ jobs:
               p.write_text(txt)
           print("✅ SDK PATHS FIXED")
 
-          # Fix 5: Download handler
+          # Fix 5: Descargas
           p = pathlib.Path(os.path.join(PY_LIB, "buildozer", "__init__.py"))
           if p.exists():
               txt = p.read_text()
@@ -100,17 +117,7 @@ jobs:
               p.write_text(txt)
           print("✅ DOWNLOAD FIXED")
 
-          # Cleanup caches
-          for root, dirs, files in os.walk(PY_LIB):
-              if "__pycache__" in dirs:
-                  shutil.rmtree(os.path.join(root, "__pycache__"), ignore_errors=True)
-          print("✅ ALL PATCHES APPLIED")
-
-      # ==== AQUÍ AGREGAMOS EL ARREGLO DE LIBFFI QUE ME PEDISTE ====
-      - name: Fix libffi build errors
-        shell: python
-        run: |
-          import sys, os, pathlib
+          # Fix 6: libffi versión compatible
           PFA = os.path.join(os.path.expanduser("~"), ".buildozer", "android", "platform", "python-for-android", "pythonforandroid", "recipes", "libffi")
           recipe = pathlib.Path(PFA) / "__init__.py"
           if recipe.exists():
@@ -118,7 +125,26 @@ jobs:
               txt = txt.replace("version = '3.4.4'", "version = '3.4.6'")
               txt = txt.replace("patches = ['remove-configure.patch']", "patches = ['remove-configure.patch']")
               recipe.write_text(txt)
-          print("✅ Receta de libffi actualizada a versión compatible")
+          print("✅ LIBFFI FIXED")
+
+          # Fix 7: COINCIDENCIA EXACTA VERSIONES PYTHON ✨ EL IMPORTANTE
+          PFA_RECIPES = os.path.join(os.path.expanduser("~"), ".buildozer", "android", "platform", "python-for-android", "pythonforandroid", "recipes")
+          for rec in ["python3", "hostpython3"]:
+              r_file = pathlib.Path(PFA_RECIPES) / rec / "__init__.py"
+              if r_file.exists():
+                  txt = r_file.read_text()
+                  txt = txt.replace("version = '3.14", "version = '3.11.15")
+                  txt = txt.replace("version = '3.13", "version = '3.11.15")
+                  txt = txt.replace("version = '3.12", "version = '3.11.15")
+                  txt = txt.replace("version = '3.11", "version = '3.11.15")
+                  r_file.write_text(txt)
+          print("✅ TODAS LAS VERSIONES DE PYTHON IGUALADAS A 3.11.15")
+
+          # Limpiar cachés
+          for root, dirs, files in os.walk(PY_LIB):
+              if "__pycache__" in dirs:
+                  shutil.rmtree(os.path.join(root, "__pycache__"), ignore_errors=True)
+          print("✅ TODOS LOS PARCHES LISTOS")
 
       - name: Build APK
         env:
