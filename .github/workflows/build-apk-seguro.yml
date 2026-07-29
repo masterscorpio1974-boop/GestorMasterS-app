@@ -34,7 +34,7 @@ jobs:
         run: |
           sudo apt-get update -y
           sudo apt-get full-upgrade -y --no-install-recommends
-          sudo apt-get install -y zip openjdk-17-jdk autoconf=2.71-2 libtool pkg-config zlib1g-dev libssl-dev libffi-dev cmake m4
+          sudo apt-get install -y zip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libssl-dev libffi-dev cmake m4
 
       - name: Install Python tools
         run: |
