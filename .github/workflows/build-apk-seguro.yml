@@ -116,16 +116,7 @@ jobs:
               p.write_text(txt)
           print("✅ DOWNLOAD FIXED")
 
-          # Fix 6: libffi fixed version
-          PFA = os.path.join(os.path.expanduser("~"), ".buildozer", "android", "platform", "python-for-android", "pythonforandroid", "recipes", "libffi")
-          recipe = pathlib.Path(PFA) / "__init__.py"
-          if recipe.exists():
-              txt = recipe.read_text()
-              txt = txt.replace("version = '3.4.4'", "version = '3.4.6'")
-              recipe.write_text(txt)
-          print("✅ LIBFFI FIXED")
-
-          # Fix 7: Force matching Python versions
+          # Fix 6: Force matching Python versions
           PFA_RECIPES = os.path.join(os.path.expanduser("~"), ".buildozer", "android", "platform", "python-for-android", "pythonforandroid", "recipes")
           for rec in ["python3", "hostpython3"]:
               r_file = pathlib.Path(PFA_RECIPES) / rec / "__init__.py"
