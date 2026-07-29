@@ -7,6 +7,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      ANDROID_SDK_LICENSE_ACCEPTED: true
+      CI: true
     steps:
       - name: 📥 Obtener todo el código
         uses: actions/checkout@v4
@@ -16,7 +19,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: 📦 Instalar todas las herramientas
+      - name: 📦 Instalar todas las herramientas oficiales
         run: |
           sudo apt update -y
           sudo apt full-upgrade -y
@@ -29,13 +32,15 @@ jobs:
           chmod 700 BASE_DE_DATOS RESPALDOS
           chmod 750 ARCHIVOS_GENERADOS TEMPORAL
 
-      - name: 🩹 Arreglar comprobación zlib automática
+      - name: 🩹 Aplicar TODOS los parches adaptados
         run: |
-          P4A_PATH=$(python -c "import pythonforandroid; print(pythonforandroid.__file__)" | sed 's/__init__.py$//')
-          sed -i 's/^if not exists_zlib:/# if not exists_zlib:/' "${P4A_PATH}recipes/libzlib/__init__.py" 2>/dev/null || true
-          sed -i 's/raise SystemExit(1)/pass/' "${P4A_PATH}recipes/libzlib/__init__.py" 2>/dev/null || true
+          # Pegamos aquí el código completo de arriba, o lo guardamos como archivo
+          cat > aplicar_parches.py << 'PYEOF'
+          [PEGA AQUÍ TODO EL CÓDIGO DE ARRIBA DE LOS PARCHES]
+          PYEOF
+          python3 aplicar_parches.py
 
-      - name: 🧩 Iniciar compilación
+      - name: 🚀 Iniciar compilación definitiva
         env:
           PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/CODIGO
         run: buildozer android debug --no-warmup --verbose
