@@ -5,7 +5,7 @@ package.domain = org.scorpiomaster
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,md,txt
 version = 1.0.0
-requirements = python3==3.11.9, hostpython3==3.11.9, kivy==2.3.0, kivymd==1.2.0, markdown, libffi==3.4.6
+requirements = python3==3.11.9, hostpython3==3.11.9, kivy==2.3.0, kivymd==1.2.0, markdown, libffi
 android.recipe_python3 = 3.11.9
 android.recipe_hostpython3 = 3.11.9
 entrypoint = main.py
@@ -22,4 +22,3 @@ buildozer.allow_application_backup = True
 android.use_aapt2 = True
 android.skip_aidl_check = True
 android.ndk_api = 24
-android.recipe_libffi = 3.4.6
