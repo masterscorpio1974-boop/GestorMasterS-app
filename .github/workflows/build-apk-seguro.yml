@@ -9,7 +9,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     env:
       ANDROID_SDK_LICENSE_ACCEPTED: true
       CI: true
@@ -22,32 +22,24 @@ jobs:
         with:
           python-version: '3.11.9'
 
-      - name: Caché de compilación
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.buildozer
-            ~/.cache/pip
-          key: buildozer-${{ hashFiles('buildozer.spec', '.github/workflows/build-apk-seguro.yml') }}
-          restore-keys: |
-            buildozer-
-
-      - name: Limpiar restos antiguos
+      - name: ELIMINAR CACHÉS VIEJOS DE LIBFFI
         run: |
           rm -rf ~/.buildozer
           rm -rf .buildozer
           rm -rf bin
+          rm -rf ~/.cache/pip
+          rm -rf ~/.cache/buildozer
 
-      - name: Install system packages
+      - name: Install system packages VERSIÓN COMPATIBLE
         run: |
           sudo apt-get update -y
-          sudo apt-get full-upgrade -y
-          sudo apt-get install -y zip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libssl-dev libffi-dev cmake
+          sudo apt-get full-upgrade -y --no-install-recommends
+          sudo apt-get install -y zip openjdk-17-jdk autoconf=2.71-2 libtool pkg-config zlib1g-dev libssl-dev libffi-dev cmake m4
 
       - name: Install Python tools
         run: |
           python -m pip install --upgrade pip setuptools wheel
-          pip install buildozer cryptography python-for-android
+          pip install buildozer cryptography python-for-android==2024.09.09
 
       - name: Create directories
         run: |
@@ -55,26 +47,29 @@ jobs:
           chmod 700 DATA BACKUPS
           chmod 755 GENERATED_FILES TEMP DOCS CODIGO
 
-      - name: APPLY ALL FIXES BEFORE ANY PLATFORM DOWNLOAD
+      - name: APLICAR PARCHES ANTES DE CUALQUIER DESCARGA
         shell: python
         run: |
           import sys, os, pathlib, shutil
           PY_LIB = sys.prefix + "/lib/python3.11/site-packages"
 
-          # ✅ ULTIMATE FIX: DELETE THE LIBFFI RECIPE COMPLETELY
-          PFA_RECIPES = os.path.join(os.path.expanduser("~"), ".buildozer", "android", "platform", "python-for-android", "pythonforandroid", "recipes")
-          libffi_path = pathlib.Path(PFA_RECIPES) / "libffi"
+          # 🔴 DESACTIVAMOS POR COMPLETO LA DESCARGA DE LIBFFI ROTA
+          PFA_RECIPES = pathlib.Path(PY_LIB) / "pythonforandroid" / "recipes"
+          libffi_path = PFA_RECIPES / "libffi"
           if libffi_path.exists():
-              shutil.rmtree(libffi_path, ignore_errors=True)
-              print("✅ BROKEN LIBFFI RECIPE REMOVED COMPLETELY")
-          else:
-              print("✅ No libffi recipe found to remove, continuing")
+              shutil.move(str(libffi_path), str(libffi_path) + ".disabled")
+              print("✅ LIBFFI RECIPE DISABLED PERMANENTLY")
 
-          # Also remove it from pypi cache just in case python-for-android tries to re-download it
-          import subprocess
-          subprocess.run(["pip", "uninstall", "-y", "libffi"], capture_output=True)
+          # Ajustamos la receta a versión que sí funciona
+          libffi_fix = PFA_RECIPES / "libffi.disabled" / "__init__.py"
+          if libffi_fix.exists():
+              text = libffi_fix.read_text()
+              text = text.replace("version = '3.4.6'", "version = '3.4.4'")
+              text = text.replace("url = .*", "url = 'https://github.com/libffi/libffi/archive/refs/tags/v3.4.4.tar.gz'")
+              text += "\n\n    def prebuild_arch(self, arch):\n        self.apply_patch('disable-libtool-check.patch', arch)\n"
+              libffi_fix.write_text(text)
 
-          # Fix 1: Disable zlib check
+          # Fix zlib
           targets = [
               os.path.join(PY_LIB, "buildozer", "targets", "android.py"),
               os.path.join(PY_LIB, "pythonforandroid", "recipes", "libzlib", "__init__.py")
@@ -89,7 +84,7 @@ jobs:
                   p.write_text(txt)
           print("✅ ZLIB FIXED")
 
-          # Fix 2: Disable AIDL check
+          # Fix AIDL
           p = pathlib.Path(os.path.join(PY_LIB, "buildozer", "targets", "android.py"))
           if p.exists():
               txt = p.read_text()
@@ -98,40 +93,9 @@ jobs:
               p.write_text(txt)
           print("✅ AIDL CHECK DISABLED")
 
-          # Fix 3: Platform check skip
-          if p.exists():
-              txt = p.read_text()
-              txt = txt.replace("raise SystemError('Unsupported platform: {0}'.format(platform))", "print('PLATFORM CHECK SKIPPED')")
-              txt = txt.replace("if platform not in ('linux', 'darwin', 'win32'):", "if False and platform not in ('linux', 'darwin', 'win32'):")
-              txt = txt.replace('if platform not in ("linux", "darwin", "win32");', 'if False and platform not in ("linux", "darwin", "win32"):')
-              txt = txt.replace("def _install_android_ndk(self):", "def _install_android_ndk(self):\n        platform = 'linux'")
-              txt = txt.replace("def _install_android_sdk(self):", "def _install_android_sdk(self):\n        platform = 'linux'")
-              p.write_text(txt)
-          print("✅ PLATFORM FIXED")
-
-          # Fix 4: SDK tools paths
-          p = pathlib.Path(os.path.join(PY_LIB, "buildozer", "targets", "android.py"))
-          if p.exists():
-              txt = p.read_text()
-              old = 'sdkmanager_path = join(self._platform_dir, "android-sdk", "tools", "bin", "sdkmanager")'
-              new = 'sdkmanager_path = join(self._platform_dir, "android-sdk", "cmdline-tools", "latest", "bin", "sdkmanager")\n        import os\n        if not os.path.exists(sdkmanager_path):\n            sdkmanager_path = join(self._platform_dir, "android-sdk", "cmdline-tools", "bin", "sdkmanager")\n        if not os.path.exists(sdkmanager_path):\n            sdkmanager_path = join(self._platform_dir, "android-sdk", "tools", "bin", "sdkmanager")'
-              txt = txt.replace(old, new)
-              p.write_text(txt)
-          print("✅ SDK PATHS FIXED")
-
-          # Fix 5: Download handler
-          p = pathlib.Path(os.path.join(PY_LIB, "buildozer", "__init__.py"))
-          if p.exists():
-              txt = p.read_text()
-              new_block = "try:\n    from urllib.request import FancyURLopener\nexcept ImportError:\n    import urllib.request\n    class FancyURLopener:\n        def retrieve(self, url, filename=None, *a, **k):\n            return urllib.request.urlretrieve(url, filename)\n        def urlretrieve(self, url, filename=None, *a, **k):\n            return urllib.request.urlretrieve(url, filename)\n    URLopener = FancyURLopener"
-              if "from urllib.request import FancyURLopener" in txt:
-                  txt = txt.replace("from urllib.request import FancyURLopener", new_block)
-              p.write_text(txt)
-          print("✅ DOWNLOAD FIXED")
-
-          # Fix 6: Force matching Python versions
+          # Versiones de Python sincronizadas
           for rec in ["python3", "hostpython3"]:
-              r_file = pathlib.Path(PFA_RECIPES) / rec / "__init__.py"
+              r_file = PFA_RECIPES / rec / "__init__.py"
               if r_file.exists():
                   txt = r_file.read_text()
                   txt = txt.replace("version = '3.14", "version = '3.11.9")
@@ -139,9 +103,9 @@ jobs:
                   txt = txt.replace("version = '3.12", "version = '3.11.9")
                   txt = txt.replace("version = '3.11", "version = '3.11.9")
                   r_file.write_text(txt)
-          print("✅ PYTHON VERSIONS SYNCED TO 3.11.9")
+          print("✅ PYTHON VERSIONS SYNCED")
 
-          # Cleanup
+          # Limpiar cachés de compilación
           for root, dirs, files in os.walk(PY_LIB):
               if "__pycache__" in dirs:
                   shutil.rmtree(os.path.join(root, "__pycache__"), ignore_errors=True)
@@ -150,7 +114,6 @@ jobs:
       - name: Build APK
         env:
           PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/CODIGO
-          ANDROID_NDK_LIBS: ${{ env.ANDROID_NDK }}/sources/cxx-stl/llvm-libc++/libs/arm64-v8a
         run: buildozer android debug --no-warmup --verbose
 
       - name: Upload built APK
