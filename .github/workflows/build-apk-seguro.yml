@@ -36,10 +36,10 @@ jobs:
           sudo apt-get full-upgrade -y --no-install-recommends
           sudo apt-get install -y zip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libssl-dev libffi-dev cmake m4
 
-      - name: Install Python tools
+      - name: Install Python tools CORREGIDO
         run: |
           python -m pip install --upgrade pip setuptools wheel
-          pip install buildozer cryptography python-for-android==2024.01.21
+          pip install "sh<2.0,>=1.10" buildozer cryptography python-for-android==2024.01.21
 
       - name: Create directories
         run: |
@@ -105,7 +105,8 @@ jobs:
       - name: Build APK
         env:
           PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/CODIGO
-        run: buildozer android debug --no-warmup --verbose
+          ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/r25b
+        run: buildozer android debug --no-warmup --log-level 2
 
       - name: Upload built APK
         uses: actions/upload-artifact@v4
