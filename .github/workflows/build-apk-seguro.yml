@@ -20,7 +20,7 @@ jobs:
       - name: Set up Python EXACTA
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11.15'
+          python-version: '3.11.9'
 
       - name: Caché de compilación
         uses: actions/cache@v4
@@ -131,12 +131,12 @@ jobs:
               r_file = pathlib.Path(PFA_RECIPES) / rec / "__init__.py"
               if r_file.exists():
                   txt = r_file.read_text()
-                  txt = txt.replace("version = '3.14", "version = '3.11.15")
-                  txt = txt.replace("version = '3.13", "version = '3.11.15")
-                  txt = txt.replace("version = '3.12", "version = '3.11.15")
-                  txt = txt.replace("version = '3.11", "version = '3.11.15")
+                  txt = txt.replace("version = '3.14", "version = '3.11.9")
+                  txt = txt.replace("version = '3.13", "version = '3.11.9")
+                  txt = txt.replace("version = '3.12", "version = '3.11.9")
+                  txt = txt.replace("version = '3.11", "version = '3.11.9")
                   r_file.write_text(txt)
-          print("✅ PYTHON VERSIONS SYNCED TO 3.11.15")
+          print("✅ PYTHON VERSIONS SYNCED TO 3.11.9")
 
           # Cleanup
           for root, dirs, files in os.walk(PY_LIB):
