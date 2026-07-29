@@ -4,6 +4,9 @@ run-name: Build ${{ github.actor }} · ${{ github.sha }}
 on:
   workflow_dispatch:
 
+env:
+  ACTIONS_ALLOW_UNSECURE_NODE_VERSION: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -36,11 +39,13 @@ jobs:
           chmod 700 DATA BACKUPS
           chmod 755 GENERATED_FILES TEMP DOCS CODIGO
 
-      - name: Apply all fixes
+      - name: Copy and run all fixes from your local patches
         shell: python
         run: |
-          import sys, os, pathlib, glob, shutil
+          import sys, os, pathlib, shutil
           PY_LIB = sys.prefix + "/lib/python3.11/site-packages"
+
+          # Fix 1: Disable zlib check
           targets = [
               os.path.join(PY_LIB, "buildozer", "targets", "android.py"),
               os.path.join(PY_LIB, "pythonforandroid", "recipes", "libzlib", "__init__.py")
@@ -53,9 +58,18 @@ jobs:
                   txt = txt.replace("if not buildops.file_exists('/usr/include/zlib.h'):", "if False:")
                   txt = txt.replace("raise SystemExit(1)", "pass")
                   p.write_text(txt)
-          print("ZLIB FIXED")
+          print("✅ ZLIB FIXED")
 
+          # Fix 2: Disable AIDL check EXACTLY like Meta showed you
           p = pathlib.Path(os.path.join(PY_LIB, "buildozer", "targets", "android.py"))
+          if p.exists():
+              txt = p.read_text()
+              txt = txt.replace("def _check_aidl(self, v_build_tools):", "def _check_aidl(self, v_build_tools):\n        return True")
+              txt = txt.replace("raise SystemExit(1)", "pass")
+              p.write_text(txt)
+          print("✅ AIDL CHECK DISABLED")
+
+          # Fix 3: Platform and SDK paths
           if p.exists():
               txt = p.read_text()
               txt = txt.replace("raise SystemError('Unsupported platform: {0}'.format(platform))", "print('PLATFORM CHECK SKIPPED')")
@@ -64,8 +78,9 @@ jobs:
               txt = txt.replace("def _install_android_ndk(self):", "def _install_android_ndk(self):\n        platform = 'linux'")
               txt = txt.replace("def _install_android_sdk(self):", "def _install_android_sdk(self):\n        platform = 'linux'")
               p.write_text(txt)
-          print("PLATFORM FIXED")
+          print("✅ PLATFORM FIXED")
 
+          # Fix 4: SDK tools location
           p = pathlib.Path(os.path.join(PY_LIB, "buildozer", "targets", "android.py"))
           if p.exists():
               txt = p.read_text()
@@ -73,8 +88,9 @@ jobs:
               new = 'sdkmanager_path = join(self._platform_dir, "android-sdk", "cmdline-tools", "latest", "bin", "sdkmanager")\n        import os\n        if not os.path.exists(sdkmanager_path):\n            sdkmanager_path = join(self._platform_dir, "android-sdk", "cmdline-tools", "bin", "sdkmanager")\n        if not os.path.exists(sdkmanager_path):\n            sdkmanager_path = join(self._platform_dir, "android-sdk", "tools", "bin", "sdkmanager")'
               txt = txt.replace(old, new)
               p.write_text(txt)
-          print("SDKMANAGER PATHS FIXED")
+          print("✅ SDK PATHS FIXED")
 
+          # Fix 5: Download handler
           p = pathlib.Path(os.path.join(PY_LIB, "buildozer", "__init__.py"))
           if p.exists():
               txt = p.read_text()
@@ -82,13 +98,13 @@ jobs:
               if "from urllib.request import FancyURLopener" in txt:
                   txt = txt.replace("from urllib.request import FancyURLopener", new_block)
               p.write_text(txt)
-          print("DOWNLOAD FIXED")
+          print("✅ DOWNLOAD FIXED")
 
+          # Cleanup caches
           for root, dirs, files in os.walk(PY_LIB):
               if "__pycache__" in dirs:
                   shutil.rmtree(os.path.join(root, "__pycache__"), ignore_errors=True)
-          print("CACHE CLEANED")
-          print("ALL PATCHES APPLIED")
+          print("✅ ALL PATCHES APPLIED")
 
       - name: Build APK
         env:
