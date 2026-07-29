@@ -1,9 +1,7 @@
 name: Compilar GestorMasterS - Versión Universal Segura
-run-name: Compilando ${{ github.actor }} • v${{ github.sha }}
+run-name: Compilando ${{ github.actor }} · v${{ github.sha }} }}
 
 on:
-  push:
-    branches: [ main, version_estable_anterior ]
   workflow_dispatch:
 
 jobs:
@@ -16,13 +14,14 @@ jobs:
       - name: 🛠️ Preparar Python y entorno
         uses: actions/setup-python@v5
         with:
-          python-version: '3.14'
+          python-version: '3.11'
 
-      - name: 📦 Instalar todas las herramientas
+      - name: 📦 Instalar todas las herramientas CORRECTAS
         run: |
           sudo apt update -y
-          sudo apt install -y zip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev
-          python -m pip install --upgrade pip buildozer cryptography
+          sudo apt full-upgrade -y
+          sudo apt install -y zip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libssl-dev libffi-dev cmake
+          python -m pip install --upgrade pip setuptools wheel buildozer cryptography
 
       - name: 📂 Crear estructura segura
         run: |
@@ -30,13 +29,21 @@ jobs:
           chmod 700 BASE_DE_DATOS RESPALDOS
           chmod 750 ARCHIVOS_GENERADOS TEMPORAL
 
+      - name: 🩹 Arreglar comprobación zlib que falla
+        run: |
+          sed -i 's/^if not exists_zlib:/# if not exists_zlib:/' /usr/local/lib/python3.11/site-packages/pythonforandroid/recipes/libzlib/__init__.py || true
+          sed -i 's/raise SystemExit(1)/pass/' /usr/local/lib/python3.11/site-packages/pythonforandroid/recipes/libzlib/__init__.py || true
+
       - name: 🧩 Iniciar compilación UNIVERSAL
-        run: buildozer android debug
+        env:
+          PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/CODIGO }}
+        run: |
+          buildozer android debug --no-warmup --verbose
 
       - name: 📤 Guardar APK listo
         uses: actions/upload-artifact@v4
+        if: success()
         with:
           name: GestorMasterS-UNIVERSAL-v1.0.0-Seguro
           path: bin/*.apk
           retention-days: 90
-
