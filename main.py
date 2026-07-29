@@ -1,105 +1,146 @@
-import os, shutil, sqlite3
+import os
+import shutil
+import sqlite3
 from datetime import datetime
 from kivymd.app import MDApp
 from kivy.lang import Builder
 from kivy.uix.scrollview import ScrollView
 
+
 def init_db():
- os.makedirs("BASE DE DATOS", exist_ok=True)
- os.makedirs("RESPALDOS", exist_ok=True)
- os.makedirs("ARCHIVOS GENERADOS", exist_ok=True)
- con=sqlite3.connect("BASE DE DATOS/datos.db")
- con.execute("CREATE TABLE IF NOT EXISTS info(id INTEGER PRIMARY KEY, tipo TEXT, texto TEXT, fecha TEXT)")
- con.commit(); con.close()
+    os.makedirs("DATA", exist_ok=True)
+    os.makedirs("BACKUPS", exist_ok=True)
+    os.makedirs("GENERATED_FILES", exist_ok=True)
+    con = sqlite3.connect("DATA/data.db")
+    con.execute("CREATE TABLE IF NOT EXISTS entries(id INTEGER PRIMARY KEY, type TEXT, content TEXT, date TEXT)")
+    con.commit()
+    con.close()
 
-def add_info(tipo, texto):
- con=sqlite3.connect("BASE DE DATOS/datos.db")
- fecha=datetime.now().strftime("%Y-%m-%d %H:%M")
- con.execute("INSERT INTO info(tipo,texto,fecha) VALUES (?,?,?)",(tipo,texto,fecha))
- con.commit(); con.close()
 
-def get_info(tipo):
- con=sqlite3.connect("BASE DE DATOS/datos.db")
- cur=con.cursor()
- cur.execute("SELECT texto,fecha FROM info WHERE tipo=? ORDER BY id DESC",(tipo,))
- d=cur.fetchall(); con.close()
- return d
+def add_entry(entry_type, content):
+    con = sqlite3.connect("DATA/data.db")
+    current_date = datetime.now().strftime("%Y-%m-%d %H:%M")
+    con.execute("INSERT INTO entries(type,content,date) VALUES (?,?,?)", (entry_type, content, current_date))
+    con.commit()
+    con.close()
 
-def hacer_respaldo():
- o="BASE DE DATOS/datos.db"
- if os.path.exists(o):
-  d=f"RESPALDOS/respaldo_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
-  shutil.copy(o,d); return d
 
-def generar_informe():
- notas=get_info("nota"); tareas=get_info("tarea")
- txt=f"INFORME {datetime.now()}\nNotas:{len(notas)} Tareas:{len(tareas)}\n\n"
- for t,f in notas[:20]: txt+=f"[NOTA {f}] {t}\n"
- for t,f in tareas[:20]: txt+=f"[TAREA {f}] {t}\n"
- ruta=f"ARCHIVOS GENERADOS/Informe_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
- os.makedirs("ARCHIVOS GENERADOS", exist_ok=True)
- open(ruta,"w",encoding="utf-8").write(txt)
- return ruta
+def get_entries(entry_type):
+    con = sqlite3.connect("DATA/data.db")
+    cur = con.cursor()
+    cur.execute("SELECT content,date FROM entries WHERE type=? ORDER BY id DESC", (entry_type,))
+    result = cur.fetchall()
+    con.close()
+    return result
 
-KV='''
+
+def create_backup():
+    source_path = "DATA/data.db"
+    if os.path.exists(source_path):
+        backup_name = f"BACKUPS/backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
+        shutil.copy(source_path, backup_name)
+        return backup_name
+
+
+def generate_report():
+    notes = get_entries("note")
+    tasks = get_entries("task")
+    report_text = f"REPORT {datetime.now()}\nNotes: {len(notes)} Tasks: {len(tasks)}\n\n"
+    for content, date in notes[:20]:
+        report_text += f"[NOTE {date}] {content}\n"
+    for content, date in tasks[:20]:
+        report_text += f"[TASK {date}] {content}\n"
+    output_path = f"GENERATED_FILES/Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+    os.makedirs("GENERATED_FILES", exist_ok=True)
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write(report_text)
+    return output_path
+
+
+LAYOUT = '''
 Screen:
- MDBoxLayout:
-  orientation:'vertical'
-  md_bg_color: 0.07,0.07,1
-  padding:10
-  spacing:10
-  MDTextField:
-   id: entrada
-   hint_text: "Escribe nota o tarea..."
-  MDBoxLayout:
-   size_hint_y:None
-   height:50
-   spacing:10
-   MDRaisedButton:
-    text:"Guardar Nota"
-    md_bg_color: 0,0.9,0.4,1
-    on_release: app.guardar_nota()
-   MDRaisedButton:
-    text:"Guardar Tarea"
-    md_bg_color: 1,0.6,0,1
-    on_release: app.guardar_tarea()
-  ScrollView:
-   MDLabel:
-    id: lista
-    size_hint_y:None
-    height: self.texture_size[1]
-    text:"Sin datos"
-  MDBoxLayout:
-   size_hint_y:None
-   height:50
-   spacing:10
-   MDRaisedButton:
-    text:"Informe IA"
-    on_release: app.hacer_informe()
-   MDRaisedButton:
-    text:"Respaldar"
-    on_release: app.hacer_backup()
+    MDBoxLayout:
+        orientation: 'vertical'
+        md_bg_color: 0.07, 0.07, 0.2
+        padding: 10
+        spacing: 10
+
+        MDTextField:
+            id: input_field
+            hint_text: "Write note or task..."
+
+        MDBoxLayout:
+            size_hint_y: None
+            height: 50
+            spacing: 10
+
+            MDRaisedButton:
+                text: "Save Note"
+                md_bg_color: 0, 0.9, 0.4, 1
+                on_release: app.save_note()
+
+            MDRaisedButton:
+                text: "Save Task"
+                md_bg_color: 1, 0.6, 0, 1
+                on_release: app.save_task()
+
+        ScrollView:
+            MDLabel:
+                id: content_list
+                size_hint_y: None
+                height: self.texture_size[1]
+                text: "No data yet"
+
+        MDBoxLayout:
+            size_hint_y: None
+            height: 50
+            spacing: 10
+
+            MDRaisedButton:
+                text: "Generate Report"
+                on_release: app.make_report()
+
+            MDRaisedButton:
+                text: "Backup Data"
+                on_release: app.make_backup()
 '''
 
+
 class GestorApp(MDApp):
- def build(self):
-  init_db()
-  self.theme_cls.theme_style="Dark"
-  return Builder.load_string(KV)
- def on_start(self):
-  self.refresh()
- def refresh(self):
-  t=""
-  for txt,f in get_info("nota"): t+=f"[NOTA {f}] {txt}\n"
-  for txt,f in get_info("tarea"): t+=f"[TAREA {f}] {txt}\n"
-  self.root.ids.lista.text=t or "Vacio"
- def guardar_nota(self):
-  if self.root.ids.entrada.text: add_info("nota",self.root.ids.entrada.text); self.root.ids.entrada.text=""; self.refresh()
- def guardar_tarea(self):
-  if self.root.ids.entrada.text: add_info("tarea",self.root.ids.entrada.text); self.root.ids.entrada.text=""; self.refresh()
- def hacer_informe(self):
-  generar_informe(); self.refresh()
- def hacer_backup(self):
-  hacer_respaldo()
+    def build(self):
+        init_db()
+        self.theme_cls.theme_style = "Dark"
+        return Builder.load_string(LAYOUT)
+
+    def on_start(self):
+        self.refresh_list()
+
+    def refresh_list(self):
+        display_text = ""
+        for content, date in get_entries("note"):
+            display_text += f"[NOTE {date}] {content}\n"
+        for content, date in get_entries("task"):
+            display_text += f"[TASK {date}] {content}\n"
+        self.root.ids.content_list.text = display_text or "Empty"
+
+    def save_note(self):
+        if self.root.ids.input_field.text.strip():
+            add_entry("note", self.root.ids.input_field.text.strip())
+            self.root.ids.input_field.text = ""
+            self.refresh_list()
+
+    def save_task(self):
+        if self.root.ids.input_field.text.strip():
+            add_entry("task", self.root.ids.input_field.text.strip())
+            self.root.ids.input_field.text = ""
+            self.refresh_list()
+
+    def make_report(self):
+        generate_report()
+        self.refresh_list()
+
+    def make_backup(self):
+        create_backup()
+
 
 GestorApp().run()
