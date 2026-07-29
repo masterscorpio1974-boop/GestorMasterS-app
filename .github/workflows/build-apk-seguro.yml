@@ -17,11 +17,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python EXACTA
+      -       - name: Set up Python EXACTA
         uses: actions/setup-python@v5
         with:
           python-version: '3.11.15'
-          cache: 'pip'
+          # QUITAMOS ESTO: cache: 'pip'
 
       - name: Caché de compilación
         uses: actions/cache@v4
