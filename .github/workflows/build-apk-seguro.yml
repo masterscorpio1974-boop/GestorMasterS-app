@@ -1,5 +1,5 @@
 name: Compilar GestorMasterS - Versión Universal Segura
-run-name: Compilando ${{ github.actor }} · v${{ github.sha }} }}
+run-name: Compilando ${{ github.actor }} · v${{ github.sha }}
 
 on:
   workflow_dispatch:
@@ -16,7 +16,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: 📦 Instalar todas las herramientas CORRECTAS
+      - name: 📦 Instalar todas las herramientas
         run: |
           sudo apt update -y
           sudo apt full-upgrade -y
@@ -29,16 +29,16 @@ jobs:
           chmod 700 BASE_DE_DATOS RESPALDOS
           chmod 750 ARCHIVOS_GENERADOS TEMPORAL
 
-      - name: 🩹 Arreglar comprobación zlib que falla
+      - name: 🩹 Arreglar comprobación zlib automática
         run: |
-          sed -i 's/^if not exists_zlib:/# if not exists_zlib:/' /usr/local/lib/python3.11/site-packages/pythonforandroid/recipes/libzlib/__init__.py || true
-          sed -i 's/raise SystemExit(1)/pass/' /usr/local/lib/python3.11/site-packages/pythonforandroid/recipes/libzlib/__init__.py || true
+          P4A_PATH=$(python -c "import pythonforandroid; print(pythonforandroid.__file__)" | sed 's/__init__.py$//')
+          sed -i 's/^if not exists_zlib:/# if not exists_zlib:/' "${P4A_PATH}recipes/libzlib/__init__.py" 2>/dev/null || true
+          sed -i 's/raise SystemExit(1)/pass/' "${P4A_PATH}recipes/libzlib/__init__.py" 2>/dev/null || true
 
-      - name: 🧩 Iniciar compilación UNIVERSAL
+      - name: 🧩 Iniciar compilación
         env:
-          PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/CODIGO }}
-        run: |
-          buildozer android debug --no-warmup --verbose
+          PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/CODIGO
+        run: buildozer android debug --no-warmup --verbose
 
       - name: 📤 Guardar APK listo
         uses: actions/upload-artifact@v4
