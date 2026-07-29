@@ -36,73 +36,59 @@ jobs:
           chmod 700 DATA BACKUPS
           chmod 755 GENERATED_FILES TEMP DOCS CODIGO
 
-      - name: Apply all build fixes
+      - name: Apply all fixes
+        shell: python
         run: |
-          cat > /tmp/fix.py << 'ENDOFFIX'
-import sys
-import os
-import pathlib
-import glob
-import shutil
+          import sys, os, pathlib, glob, shutil
+          PY_LIB = sys.prefix + "/lib/python3.11/site-packages"
+          targets = [
+              os.path.join(PY_LIB, "buildozer", "targets", "android.py"),
+              os.path.join(PY_LIB, "pythonforandroid", "recipes", "libzlib", "__init__.py")
+          ]
+          for t in targets:
+              p = pathlib.Path(t)
+              if p.exists():
+                  txt = p.read_text()
+                  txt = txt.replace("if not self.buildozer.file_exists('/usr/include/zlib.h'):", "if False:")
+                  txt = txt.replace("if not buildops.file_exists('/usr/include/zlib.h'):", "if False:")
+                  txt = txt.replace("raise SystemExit(1)", "pass")
+                  p.write_text(txt)
+          print("ZLIB FIXED")
 
-PY_LIB = sys.prefix + "/lib/python3.11/site-packages"
+          p = pathlib.Path(os.path.join(PY_LIB, "buildozer", "targets", "android.py"))
+          if p.exists():
+              txt = p.read_text()
+              txt = txt.replace("raise SystemError('Unsupported platform: {0}'.format(platform))", "print('PLATFORM CHECK SKIPPED')")
+              txt = txt.replace("if platform not in ('linux', 'darwin', 'win32'):", "if False and platform not in ('linux', 'darwin', 'win32'):")
+              txt = txt.replace('if platform not in ("linux", "darwin", "win32");', 'if False and platform not in ("linux", "darwin", "win32"):')
+              txt = txt.replace("def _install_android_ndk(self):", "def _install_android_ndk(self):\n        platform = 'linux'")
+              txt = txt.replace("def _install_android_sdk(self):", "def _install_android_sdk(self):\n        platform = 'linux'")
+              p.write_text(txt)
+          print("PLATFORM FIXED")
 
-for target in [
-    os.path.join(PY_LIB, "buildozer", "targets", "android.py"),
-    os.path.join(PY_LIB, "pythonforandroid", "recipes", "libzlib", "__init__.py")
-]:
-    p = pathlib.Path(target)
-    if p.exists():
-        t = p.read_text()
-        t = t.replace("if not self.buildozer.file_exists('/usr/include/zlib.h'):", "if False:")
-        t = t.replace("if not buildops.file_exists('/usr/include/zlib.h'):", "if False:")
-        t = t.replace("raise SystemExit(1)", "pass")
-        p.write_text(t)
-print("ZLIB FIXED")
+          p = pathlib.Path(os.path.join(PY_LIB, "buildozer", "targets", "android.py"))
+          if p.exists():
+              txt = p.read_text()
+              old = 'sdkmanager_path = join(self._platform_dir, "android-sdk", "tools", "bin", "sdkmanager")'
+              new = 'sdkmanager_path = join(self._platform_dir, "android-sdk", "cmdline-tools", "latest", "bin", "sdkmanager")\n        import os\n        if not os.path.exists(sdkmanager_path):\n            sdkmanager_path = join(self._platform_dir, "android-sdk", "cmdline-tools", "bin", "sdkmanager")\n        if not os.path.exists(sdkmanager_path):\n            sdkmanager_path = join(self._platform_dir, "android-sdk", "tools", "bin", "sdkmanager")'
+              txt = txt.replace(old, new)
+              p.write_text(txt)
+          print("SDKMANAGER PATHS FIXED")
 
-p = pathlib.Path(os.path.join(PY_LIB, "buildozer", "targets", "android.py"))
-if p.exists():
-    t = p.read_text()
-    t = t.replace("raise SystemError('Unsupported platform: {0}'.format(platform))", "print('PLATFORM CHECK SKIPPED')")
-    t = t.replace("if platform not in ('linux', 'darwin', 'win32'):", "if False and platform not in ('linux', 'darwin', 'win32'):")
-    t = t.replace('if platform not in ("linux", "darwin", "win32");', 'if False and platform not in ("linux", "darwin", "win32"):')
-    t = t.replace("def _install_android_ndk(self):", "def _install_android_ndk(self):\n        platform = 'linux'")
-    t = t.replace("def _install_android_sdk(self):", "def _install_android_sdk(self):\n        platform = 'linux'")
-    p.write_text(t)
-print("PLATFORM FIXED")
+          p = pathlib.Path(os.path.join(PY_LIB, "buildozer", "__init__.py"))
+          if p.exists():
+              txt = p.read_text()
+              new_block = "try:\n    from urllib.request import FancyURLopener\nexcept ImportError:\n    import urllib.request\n    class FancyURLopener:\n        def retrieve(self, url, filename=None, *a, **k):\n            return urllib.request.urlretrieve(url, filename)\n        def urlretrieve(self, url, filename=None, *a, **k):\n            return urllib.request.urlretrieve(url, filename)\n    URLopener = FancyURLopener"
+              if "from urllib.request import FancyURLopener" in txt:
+                  txt = txt.replace("from urllib.request import FancyURLopener", new_block)
+              p.write_text(txt)
+          print("DOWNLOAD FIXED")
 
-t = p.read_text()
-old_path = 'sdkmanager_path = join(self._platform_dir, "android-sdk", "tools", "bin", "sdkmanager")'
-new_path = 'sdkmanager_path = join(self._platform_dir, "android-sdk", "cmdline-tools", "latest", "bin", "sdkmanager")\n        import os\n        if not os.path.exists(sdkmanager_path):\n            sdkmanager_path = join(self._platform_dir, "android-sdk", "cmdline-tools", "bin", "sdkmanager")\n        if not os.path.exists(sdkmanager_path):\n            sdkmanager_path = join(self._platform_dir, "android-sdk", "tools", "bin", "sdkmanager")'
-t = t.replace(old_path, new_path)
-p.write_text(t)
-print("SDKMANAGER PATHS FIXED")
-
-p = pathlib.Path(os.path.join(PY_LIB, "buildozer", "__init__.py"))
-if p.exists():
-    t = p.read_text()
-    new_block = """try:
-    from urllib.request import FancyURLopener
-except ImportError:
-    import urllib.request
-    class FancyURLopener:
-        def retrieve(self, url, filename=None, *a, **k):
-            return urllib.request.urlretrieve(url, filename)
-        def urlretrieve(self, url, filename=None, *a, **k):
-            return urllib.request.urlretrieve(url, filename)
-    URLopener = FancyURLopener"""
-    if "from urllib.request import FancyURLopener" in t:
-        t = t.replace("from urllib.request import FancyURLopener", new_block)
-    p.write_text(t)
-print("DOWNLOAD FIXED")
-
-for root, dirs, files in os.walk(PY_LIB):
-    if "__pycache__" in dirs:
-        shutil.rmtree(os.path.join(root, "__pycache__"), ignore_errors=True)
-print("CACHE CLEANED")
-print("ALL PATCHES APPLIED")
-ENDOFFIX
-          python3 /tmp/fix.py
+          for root, dirs, files in os.walk(PY_LIB):
+              if "__pycache__" in dirs:
+                  shutil.rmtree(os.path.join(root, "__pycache__"), ignore_errors=True)
+          print("CACHE CLEANED")
+          print("ALL PATCHES APPLIED")
 
       - name: Build APK
         env:
