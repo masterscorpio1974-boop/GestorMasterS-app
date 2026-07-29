@@ -129,6 +129,16 @@ jobs:
                   r_file.write_text(txt)
           print("✅ PYTHON VERSIONS SYNCED TO 3.11.9")
 
+          # ✨ FIX FINAL: Corregir error LT_SYS_SYMBOL_USCORE en libffi
+          LIBFFI_RECIPE = pathlib.Path(PFA_RECIPES) / "libffi" / "__init__.py"
+          if LIBFFI_RECIPE.exists():
+              txt = LIBFFI_RECIPE.read_text()
+              txt = txt.replace("version = '3.4.6'", "version = '3.4.4'")
+              txt = txt.replace(r"m4_pattern_allow = True", "# m4_pattern_allow = True")
+              txt += "\n# Fix autoconf/libtool conflict\nprebuilt_arch = {'arm64-v8a': 'libffi.a'}\n"
+              LIBFFI_RECIPE.write_text(txt)
+          print("✅ LIBFFI CONFLICT RESOLVED")
+
           # Cleanup
           for root, dirs, files in os.walk(PY_LIB):
               if "__pycache__" in dirs:
@@ -147,3 +157,4 @@ jobs:
           name: GestorMasterS-Universal-v1.0.0
           path: bin/*.apk
           retention-days: 90
+
