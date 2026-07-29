@@ -114,3 +114,4 @@ jobs:
           name: GestorMasterS-Universal-v1.0.0
           path: bin/*.apk
           retention-days: 90
+
