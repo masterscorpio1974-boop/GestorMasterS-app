@@ -22,7 +22,7 @@ jobs:
         with:
           python-version: '3.11.9'
 
-      - name: ELIMINAR CACHÉS VIEJOS DE LIBFFI
+      - name: ELIMINAR CACHÉS VIEJOS
         run: |
           rm -rf ~/.buildozer
           rm -rf .buildozer
@@ -39,7 +39,7 @@ jobs:
       - name: Install Python tools
         run: |
           python -m pip install --upgrade pip setuptools wheel
-          pip install buildozer cryptography python-for-android==2024.09.09
+          pip install buildozer cryptography python-for-android==2024.9.9
 
       - name: Create directories
         run: |
@@ -53,21 +53,12 @@ jobs:
           import sys, os, pathlib, shutil
           PY_LIB = sys.prefix + "/lib/python3.11/site-packages"
 
-          # 🔴 DESACTIVAMOS POR COMPLETO LA DESCARGA DE LIBFFI ROTA
+          # 🔴 DESACTIVAMOS LA RECETA DAÑADA DE LIBFFI
           PFA_RECIPES = pathlib.Path(PY_LIB) / "pythonforandroid" / "recipes"
           libffi_path = PFA_RECIPES / "libffi"
           if libffi_path.exists():
               shutil.move(str(libffi_path), str(libffi_path) + ".disabled")
               print("✅ LIBFFI RECIPE DISABLED PERMANENTLY")
-
-          # Ajustamos la receta a versión que sí funciona
-          libffi_fix = PFA_RECIPES / "libffi.disabled" / "__init__.py"
-          if libffi_fix.exists():
-              text = libffi_fix.read_text()
-              text = text.replace("version = '3.4.6'", "version = '3.4.4'")
-              text = text.replace("url = .*", "url = 'https://github.com/libffi/libffi/archive/refs/tags/v3.4.4.tar.gz'")
-              text += "\n\n    def prebuild_arch(self, arch):\n        self.apply_patch('disable-libtool-check.patch', arch)\n"
-              libffi_fix.write_text(text)
 
           # Fix zlib
           targets = [
