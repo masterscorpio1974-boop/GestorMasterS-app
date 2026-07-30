@@ -2,10 +2,9 @@ import os
 import shutil
 import sqlite3
 from datetime import datetime
-from kivy.utils import platform
 from kivymd.app import MDApp
 from kivy.lang import Builder
-from kivy.uix.scrollview import ScrollView
+from kivy.uix.screenmanager import Screen
 
 def get_base_dir():
     app = MDApp.get_running_app()
@@ -16,11 +15,15 @@ def get_base_dir():
 def get_path(*parts):
     base = get_base_dir()
     full = os.path.join(base, *parts)
+    # Crea la carpeta contenedora siempre
     os.makedirs(os.path.dirname(full) if "." in parts[-1] else full, exist_ok=True)
     return full
 
+def get_db_path():
+    return get_path("DATA", "data.db")
+
 def init_db():
-    db_path = get_path("DATA", "data.db")
+    db_path = get_db_path()
     os.makedirs(os.path.dirname(db_path), exist_ok=True)
     os.makedirs(get_path("BACKUPS"), exist_ok=True)
     os.makedirs(get_path("GENERATED_FILES"), exist_ok=True)
@@ -30,26 +33,27 @@ def init_db():
     con.close()
 
 def add_entry(entry_type, content):
-    con = sqlite3.connect(get_path("DATA", "data.db"))
+    con = sqlite3.connect(get_db_path())
     current_date = datetime.now().strftime("%Y-%m-%d %H:%M")
     con.execute("INSERT INTO entries(type,content,date) VALUES (?,?,?)", (entry_type, content, current_date))
     con.commit()
     con.close()
 
 def get_entries(entry_type):
-    con = sqlite3.connect(get_path("DATA", "data.db"))
+    con = sqlite3.connect(get_db_path())
     cur = con.cursor()
-    con.execute("SELECT content,date FROM entries WHERE type=? ORDER BY id DESC", (entry_type,))
+    cur.execute("SELECT content,date FROM entries WHERE type=? ORDER BY id DESC", (entry_type,))
     result = cur.fetchall()
     con.close()
     return result
 
 def create_backup():
-    source_path = get_path("DATA", "data.db")
+    source_path = get_db_path()
     if os.path.exists(source_path):
         backup_name = get_path("BACKUPS", f"backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db")
         shutil.copy(source_path, backup_name)
         return backup_name
+    return None
 
 def generate_report():
     notes = get_entries("note")
@@ -69,15 +73,16 @@ Screen:
     MDBoxLayout:
         orientation: 'vertical'
         md_bg_color: 0.07, 0.07, 0.2, 1
-        padding: 10
-        spacing: 10
+        padding: dp(10)
+        spacing: dp(10)
         MDTextField:
             id: input_field
             hint_text: "Write note or task..."
+            mode: "fill"
         MDBoxLayout:
             size_hint_y: None
-            height: 50
-            spacing: 10
+            height: dp(50)
+            spacing: dp(10)
             MDRaisedButton:
                 text: "Save Note"
                 md_bg_color: 0, 0.9, 0.4, 1
@@ -94,8 +99,8 @@ Screen:
                 text: "No data yet"
         MDBoxLayout:
             size_hint_y: None
-            height: 50
-            spacing: 10
+            height: dp(50)
+            spacing: dp(10)
             MDRaisedButton:
                 text: "Generate Report"
                 on_release: app.make_report()
@@ -134,7 +139,7 @@ class GestorApp(MDApp):
             self.refresh_list()
 
     def make_report(self):
-        generate_report()
+        path = generate_report()
         self.refresh_list()
 
     def make_backup(self):
