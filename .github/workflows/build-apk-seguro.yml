@@ -6,10 +6,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-22.04
-    env:
-      ACTIONS_ALLOW_UNSECURE_NODE_VERSION: true
     steps:
-      - name: Obtener código más reciente
+      - name: Obtener código
         uses: actions/checkout@v4
 
       - name: Instalar Python 3.11
@@ -17,28 +15,33 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Instalar herramientas de compilación compatibles
+      - name: Instalar dependencias del sistema
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y build-essential git zip unzip openjdk-17-jdk wget autoconf=2.71-2 automake libtool pkg-config
+          sudo apt-get install -y build-essential git zip unzip openjdk-17-jdk python3-pip autoconf automake libtool pkg-config zlib1g-dev libncursesw5-dev libffi-dev libssl-dev
 
-      - name: Instalar versiones exactas probadas
+      - name: Instalar Buildozer y P4A
         run: |
           python -m pip install --upgrade pip setuptools wheel
-          pip install buildozer==1.5.0 cython==0.29.37 python-for-android==2024.01.21
+          pip install buildozer==1.5.0 cython==0.29.36 python-for-android==2024.01.21
 
-      - name: Compilar APK y aplicar correcciones internas
+      - name: Aplicar parches para libffi y libzlib
         run: |
-          buildozer android debug --log-level 2 || true
-          RECIPES_DIR="$(python -c "import pythonforandroid.recipes; import os; print(os.path.dirname(pythonforandroid.recipes.__file__))")"
-          sed -i 's/^if not exists_zlib:/# if not exists_zlib:/' "$RECIPES_DIR/libzlib/__init__.py" 2>/dev/null || true
-          sed -i 's/^    raise SystemExit(1)/#    raise SystemExit(1)/' "$RECIPES_DIR/libzlib/__init__.py" 2>/dev/null || true
-          sed -i '/LT_SYS_SYMBOL_USCORE/d' "$RECIPES_DIR/libffi/configure.ac" 2>/dev/null || true
+          RECIPES_DIR=$(python3 -c "import pythonforandroid.recipes; import os; print(os.path.dirname(pythonforandroid.recipes.__file__))")
+          echo "Parchando en: $RECIPES_DIR"
+          # Parche libzlib
+          sed -i 's/^if not exists_zlib:/# if not exists_zlib:/' "$RECIPES_DIR/libzlib/__init__.py" || true
+          sed -i 's/^ raise SystemExit(1)/# raise SystemExit(1)/' "$RECIPES_DIR/libzlib/__init__.py" || true
+          # Parche libffi
+          sed -i '/LT_SYS_SYMBOL_USCORE/d' "$RECIPES_DIR/libffi/configure.ac" || true
+          sed -i '/AC_CHECK_FUNCS.*_.*func/d' "$RECIPES_DIR/libffi/configure.ac" || true
+
+      - name: Compilar APK
+        run: |
           buildozer android debug --log-level 2
 
       - name: Guardar APK final
         uses: actions/upload-artifact@v4
-        if: success()
         with:
           name: GestorMasterS-APK-DEFINITIVO
           path: bin/*.apk
