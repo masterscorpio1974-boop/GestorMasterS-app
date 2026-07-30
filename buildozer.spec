@@ -7,10 +7,10 @@ source.include_exts = py,png,jpg,kv,atlas,md,txt
 version = 1.0.0
 
 # VERSIONES SIN CONFLICTOS
-requirements = python3==3.11.9, kivy==2.3.0, kivymd==1.2.0, markdown, requests, urllib3, idna, certifi, charset-normalizer, filetype
+requirements = python3, kivy==2.3.0, kivymd==1.2.0, markdown, requests, urllib3, idna, certifi, charset-normalizer, filetype
 
-android.recipe_python3 = 3.11.9
-android.recipe_hostpython3 = 3.11.9
+android.recipe_python3 = 3.14.2
+android.recipe_hostpython3 = 3.14.2
 android.recipe_libffi = 3.4.4
 android.libffi_source = https://github.com/libffi/libffi/archive/refs/tags/v3.4.4.tar.gz
 
