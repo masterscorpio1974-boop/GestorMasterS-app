@@ -8,7 +8,6 @@ from kivy.lang import Builder
 from kivy.uix.scrollview import ScrollView
 
 def get_base_dir():
-    # En Android usa la carpeta privada de la app, en PC usa la actual
     app = MDApp.get_running_app()
     if app:
         return app.user_data_dir
@@ -40,7 +39,7 @@ def add_entry(entry_type, content):
 def get_entries(entry_type):
     con = sqlite3.connect(get_path("DATA", "data.db"))
     cur = con.cursor()
-    cur.execute("SELECT content,date FROM entries WHERE type=? ORDER BY id DESC", (entry_type,))
+    con.execute("SELECT content,date FROM entries WHERE type=? ORDER BY id DESC", (entry_type,))
     result = cur.fetchall()
     con.close()
     return result
