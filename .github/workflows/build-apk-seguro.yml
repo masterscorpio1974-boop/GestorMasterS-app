@@ -17,7 +17,7 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Instalar herramientas compatibles
+      - name: Instalar herramientas de compilación compatibles
         run: |
           sudo apt-get update -y
           sudo apt-get install -y build-essential git zip unzip openjdk-17-jdk wget autoconf=2.71-2 automake libtool pkg-config
@@ -27,9 +27,9 @@ jobs:
           python -m pip install --upgrade pip setuptools wheel
           pip install buildozer==1.5.0 cython==0.29.37 python-for-android==2024.01.21
 
-      - name: Ejecutar compilación, aplicar correcciones al detectar archivos
+      - name: Compilar APK y aplicar correcciones internas
         run: |
-          buildozer android debug --log-level 2 2>&1 | tee build.log || true
+          buildozer android debug --log-level 2 || true
           RECIPES_DIR="$(python -c "import pythonforandroid.recipes; import os; print(os.path.dirname(pythonforandroid.recipes.__file__))")"
           sed -i 's/^if not exists_zlib:/# if not exists_zlib:/' "$RECIPES_DIR/libzlib/__init__.py" 2>/dev/null || true
           sed -i 's/^    raise SystemExit(1)/#    raise SystemExit(1)/' "$RECIPES_DIR/libzlib/__init__.py" 2>/dev/null || true
