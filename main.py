@@ -15,7 +15,6 @@ def get_base_dir():
 def get_path(*parts):
     base = get_base_dir()
     full = os.path.join(base, *parts)
-    # Crea la carpeta contenedora siempre
     os.makedirs(os.path.dirname(full) if "." in parts[-1] else full, exist_ok=True)
     return full
 
@@ -72,7 +71,7 @@ LAYOUT = '''
 Screen:
     MDBoxLayout:
         orientation: 'vertical'
-        md_bg_color: 0.07, 0.07, 0.2, 1
+        md_bg_color: 0.05, 0.05, 0.10, 1
         padding: dp(10)
         spacing: dp(10)
         MDTextField:
@@ -85,11 +84,11 @@ Screen:
             spacing: dp(10)
             MDRaisedButton:
                 text: "Save Note"
-                md_bg_color: 0, 0.9, 0.4, 1
+                md_bg_color: 0, 0.58, 1, 1
                 on_release: app.save_note()
             MDRaisedButton:
                 text: "Save Task"
-                md_bg_color: 1, 0.6, 0, 1
+                md_bg_color: 0, 0.78, 1, 1
                 on_release: app.save_task()
         ScrollView:
             MDLabel:
@@ -112,6 +111,7 @@ Screen:
 class GestorApp(MDApp):
     def build(self):
         self.theme_cls.theme_style = "Dark"
+        self.theme_cls.primary_palette = "Blue"
         init_db()
         return Builder.load_string(LAYOUT)
 
