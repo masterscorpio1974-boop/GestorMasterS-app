@@ -1,14 +1,18 @@
 name: Compilar GestorMasterS DEFINITIVO
-
 on:
   workflow_dispatch:
-
 jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
       - name: Obtener código
         uses: actions/checkout@v4
+
+      - name: Configurar Java 17 (ESTO ERA LO QUE FALTABA)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
 
       - name: Instalar Python 3.11
         uses: actions/setup-python@v5
@@ -28,13 +32,8 @@ jobs:
       - name: Aplicar parches para libffi y libzlib
         run: |
           RECIPES_DIR=$(python3 -c "import pythonforandroid.recipes; import os; print(os.path.dirname(pythonforandroid.recipes.__file__))")
-          echo "Parchando en: $RECIPES_DIR"
-          # Parche libzlib
           sed -i 's/^if not exists_zlib:/# if not exists_zlib:/' "$RECIPES_DIR/libzlib/__init__.py" || true
-          sed -i 's/^ raise SystemExit(1)/# raise SystemExit(1)/' "$RECIPES_DIR/libzlib/__init__.py" || true
-          # Parche libffi
-          sed -i '/LT_SYS_SYMBOL_USCORE/d' "$RECIPES_DIR/libffi/configure.ac" || true
-          sed -i '/AC_CHECK_FUNCS.*_.*func/d' "$RECIPES_DIR/libffi/configure.ac" || true
+          sed -i 's/^.*raise SystemExit(1)/# raise SystemExit(1)/' "$RECIPES_DIR/libzlib/__init__.py" || true
 
       - name: Compilar APK
         run: |
