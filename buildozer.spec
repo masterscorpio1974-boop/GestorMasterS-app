@@ -16,6 +16,5 @@ android.ndk = 27c
 android.accept_sdk_license_agreement = True
 android.enable_androidx = True
 p4a.bootstrap = sdl2
-p4a.branch = master
 p4a.fork = kivy
 p4a.url = https
