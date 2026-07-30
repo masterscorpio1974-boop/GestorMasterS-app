@@ -5,8 +5,6 @@ package.domain = com.masterscorpio.gestormasters
 source.dir =.
 source.include_exts = py,png,jpg,kv,atlas,json,db,txt
 version = 1.0
-version.regex = __version__ = ['"]([^'"]*)['"]
-version.filename = %(source.dir)s/main.py
 requirements = python3,kivy==2.3.0,kivymd==1.2.0,sqlite3,Pillow
 orientation = portrait
 fullscreen = 0
@@ -28,8 +26,6 @@ android.sdk = 36
 android.accept_sdk_license_agreement = True
 android.ant = auto
 # Para que jale bien en One UI 8.5
-android.gradle_dependencies =
 android.enable_androidx = True
 android.allow_backup = True
-android.backup_rules =
 p4a.bootstrap = sdl2
