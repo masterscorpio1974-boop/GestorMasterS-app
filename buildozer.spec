@@ -1,27 +1,35 @@
 [app]
 title = GestorMasterS
 package.name = gestormasters
-package.domain = org.scorpiomaster
-source.dir = .
-source.include_exts = py,png,jpg,kv,atlas,json
+package.domain = com.masterscorpio.gestormasters
+source.dir =.
+source.include_exts = py,png,jpg,kv,atlas,json,db,txt
 version = 1.0
-
-requirements = python3, kivy==2.3.0, kivymd==1.2.0, pillow
-
+version.regex = __version__ = ['"]([^'"]*)['"]
+version.filename = %(source.dir)s/main.py
+requirements = python3,kivy==2.3.0,kivymd==1.2.0,sqlite3,Pillow
 orientation = portrait
 fullscreen = 0
-window_softinput_mode = resize
-android.permissions = INTERNET
-
-android.api = 34
-android.minapi = 29
-android.ndk = 25b
-android.archs = arm64-v8a, armeabi-v7a
-android.buildtools = 34.0.0
-p4a.bootstrap = sdl2
-android.accept_sdk_license = True
-android.allow_backup = True
+android.permissions = WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE
 
 [buildozer]
 log_level = 2
-warn_on_root = 0
+warn_on_root = 1
+
+[app:android]
+# Esto es lo que te estaba tronando, solo 64 bits
+android.archs = arm64-v8a
+p4a.branch = master
+# Android 16 = API 36
+android.api = 36
+android.minapi = 21
+android.ndk = 27c
+android.sdk = 36
+android.accept_sdk_license_agreement = True
+android.ant = auto
+# Para que jale bien en One UI 8.5
+android.gradle_dependencies =
+android.enable_androidx = True
+android.allow_backup = True
+android.backup_rules =
+p4a.bootstrap = sdl2
