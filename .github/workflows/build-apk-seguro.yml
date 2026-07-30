@@ -1,117 +1,35 @@
-name: Compile GestorMasterS
-run-name: Build ${{ github.actor }} · ${{ github.sha }}
+name: Compilar GestorMasterS
 
 on:
   workflow_dispatch:
 
-env:
-  ACTIONS_ALLOW_UNSECURE_NODE_VERSION: true
-
 jobs:
   build:
-    runs-on: ubuntu-22.04
-    env:
-      ANDROID_SDK_LICENSE_ACCEPTED: true
-      CI: true
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout código
         uses: actions/checkout@v4
 
-      - name: Set up Python EXACTA
+      - name: Instalar Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11.9'
+          python-version: "3.11"
 
-      - name: ELIMINAR CACHÉS VIEJOS
-        run: |
-          rm -rf ~/.buildozer
-          rm -rf .buildozer
-          rm -rf bin
-          rm -rf ~/.cache/pip
-          rm -rf ~/.cache/buildozer
-
-      - name: Install system packages VERSIÓN COMPATIBLE
+      - name: Instalar dependencias del sistema
         run: |
           sudo apt-get update -y
-          sudo apt-get full-upgrade -y --no-install-recommends
-          sudo apt-get install -y zip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libssl-dev libffi-dev cmake m4
+          sudo apt-get install -y build-essential git zip unzip openjdk-17-jdk wget libssl-dev libffi-dev zlib1g-dev
 
-      - name: Install Python tools CORREGIDO
+      - name: Instalar Buildozer y herramientas
         run: |
           python -m pip install --upgrade pip setuptools wheel
-          pip install "sh<2.0,>=1.10" buildozer cryptography python-for-android==2024.01.21
+          pip install buildozer==1.5.0 cython==0.29.37
 
-      - name: Create directories
-        run: |
-          mkdir -p DATA BACKUPS GENERATED_FILES TEMP DOCS CODIGO
-          chmod 700 DATA BACKUPS
-          chmod 755 GENERATED_FILES TEMP DOCS CODIGO
+      - name: Compilar APK
+        run: buildozer android debug
 
-      - name: APLICAR PARCHES ANTES DE CUALQUIER DESCARGA
-        shell: python
-        run: |
-          import sys, os, pathlib, shutil
-          PY_LIB = sys.prefix + "/lib/python3.11/site-packages"
-
-          # DESACTIVAMOS LA RECETA DAÑADA DE LIBFFI
-          PFA_RECIPES = pathlib.Path(PY_LIB) / "pythonforandroid" / "recipes"
-          libffi_path = PFA_RECIPES / "libffi"
-          if libffi_path.exists():
-              shutil.move(str(libffi_path), str(libffi_path) + ".disabled")
-              print("✅ LIBFFI RECIPE DISABLED PERMANENTLY")
-
-          # Fix zlib
-          targets = [
-              os.path.join(PY_LIB, "buildozer", "targets", "android.py"),
-              os.path.join(PY_LIB, "pythonforandroid", "recipes", "libzlib", "__init__.py")
-          ]
-          for t in targets:
-              p = pathlib.Path(t)
-              if p.exists():
-                  txt = p.read_text()
-                  txt = txt.replace("if not self.buildozer.file_exists('/usr/include/zlib.h'):", "if False:")
-                  txt = txt.replace("if not buildops.file_exists('/usr/include/zlib.h'):", "if False:")
-                  txt = txt.replace("raise SystemExit(1)", "pass")
-                  p.write_text(txt)
-          print("✅ ZLIB FIXED")
-
-          # Fix AIDL
-          p = pathlib.Path(os.path.join(PY_LIB, "buildozer", "targets", "android.py"))
-          if p.exists():
-              txt = p.read_text()
-              txt = txt.replace("def _check_aidl(self, v_build_tools):", "def _check_aidl(self, v_build_tools):\n        return True")
-              txt = txt.replace("raise SystemExit(1)", "pass")
-              p.write_text(txt)
-          print("✅ AIDL CHECK DISABLED")
-
-          # Versiones de Python sincronizadas
-          for rec in ["python3", "hostpython3"]:
-              r_file = PFA_RECIPES / rec / "__init__.py"
-              if r_file.exists():
-                  txt = r_file.read_text()
-                  txt = txt.replace("version = '3.14", "version = '3.11.9")
-                  txt = txt.replace("version = '3.13", "version = '3.11.9")
-                  txt = txt.replace("version = '3.12", "version = '3.11.9")
-                  txt = txt.replace("version = '3.11", "version = '3.11.9")
-                  r_file.write_text(txt)
-          print("✅ PYTHON VERSIONS SYNCED")
-
-          # Limpiar cachés de compilación
-          for root, dirs, files in os.walk(PY_LIB):
-              if "__pycache__" in dirs:
-                  shutil.rmtree(os.path.join(root, "__pycache__"), ignore_errors=True)
-          print("✅ ALL PATCHES APPLIED")
-
-      - name: Build APK
-        env:
-          PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/CODIGO
-          ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/r25b
-        run: buildozer android debug --no-warmup --log-level 2
-
-      - name: Upload built APK
+      - name: Subir artefacto APK
         uses: actions/upload-artifact@v4
-        if: success()
         with:
-          name: GestorMasterS-Universal-v1.0.0
+          name: GestorMasterS-APK
           path: bin/*.apk
-          retention-days: 90
