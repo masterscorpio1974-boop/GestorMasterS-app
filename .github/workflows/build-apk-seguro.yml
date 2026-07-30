@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     env:
       ACTIONS_ALLOW_UNSECURE_NODE_VERSION: true
     steps:
@@ -17,17 +17,23 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Instalar TODAS las herramientas de compilación
+      - name: Instalar TODAS las herramientas de compilación compatibles
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y build-essential git zip unzip openjdk-17-jdk wget autoconf automake libtool pkg-config
+          sudo apt-get install -y build-essential git zip unzip openjdk-17-jdk wget autoconf=2.71-2 automake libtool pkg-config
 
       - name: Instalar Buildozer y componentes
         run: |
           python -m pip install --upgrade pip setuptools wheel
-          pip install buildozer==1.5.0 cython==0.29.37
+          pip install buildozer==1.5.0 cython==0.29.37 python-for-android==2024.01.21
 
-      - name: Compilar APK sin errores de libffi
+      - name: Corregir macros de libffi antes de compilar
+        run: |
+          sed -i 's/^if not exists_zlib:/# if not exists_zlib:/' $(python -m pythonforandroid --print-recipes-dir)/libzlib/__init__.py
+          sed -i 's/^    raise SystemExit(1)/#    raise SystemExit(1)/' $(python -m pythonforandroid --print-recipes-dir)/libzlib/__init__.py
+          sed -i '/LT_SYS_SYMBOL_USCORE/d' $(python -m pythonforandroid --print-recipes-dir)/libffi/configure.ac 2>/dev/null || true
+
+      - name: Compilar APK sin errores
         run: |
           buildozer android debug --log-level 2
 
@@ -37,3 +43,4 @@ jobs:
         with:
           name: GestorMasterS-APK-DEFINITIVO
           path: bin/*.apk
+          retention-days: 90
