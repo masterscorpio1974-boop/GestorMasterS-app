@@ -1,47 +1,72 @@
-name: Compilar GestorMasterS DEFINITIVO
+name: Compile GestorMasterS
+run-name: Build ${{ github.actor }} · ${{ github.sha }}
+
 on:
   workflow_dispatch:
+
+env:
+  ACTIONS_ALLOW_UNSECURE_NODE_VERSION: true
+  PYTHONIOENCODING: utf-8
+  DEBIAN_FRONTEND: noninteractive
+  PYTHONUNBUFFERED: 1
+
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
+    env:
+      ANDROID_SDK_LICENSE_ACCEPTED: true
+      CI: true
     steps:
-      - name: Obtener código
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Configurar Java 17 (ESTO ERA LO QUE FALTABA)
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Instalar Python 3.11
+      - name: Set up Python exact version
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: '3.11.9'
 
-      - name: Instalar dependencias del sistema
+      - name: Cache build directories
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.buildozer
+            ~/.cache/pip
+          key: ${{ runner.os }}-buildozer-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildozer-
+
+      - name: Install system dependencies
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y build-essential git zip unzip openjdk-17-jdk python3-pip autoconf automake libtool pkg-config zlib1g-dev libncursesw5-dev libffi-dev libssl-dev
+          sudo apt-get install -y build-essential git zip unzip openjdk-17-jdk autoconf automake libtool pkg-config libssl-dev libffi-dev cmake
 
-      - name: Instalar Buildozer y P4A
+      - name: Install Python tools
         run: |
           python -m pip install --upgrade pip setuptools wheel
-          pip install buildozer==1.5.0 cython==0.29.36 python-for-android==2024.01.21
+          pip install buildozer cryptography python-for-android==2024.9.9
 
-      - name: Aplicar parches para libffi y libzlib
+      - name: Apply all required fixes
         run: |
-          RECIPES_DIR=$(python3 -c "import pythonforandroid.recipes; import os; print(os.path.dirname(pythonforandroid.recipes.__file__))")
-          sed -i 's/^if not exists_zlib:/# if not exists_zlib:/' "$RECIPES_DIR/libzlib/__init__.py" || true
-          sed -i 's/^.*raise SystemExit(1)/# raise SystemExit(1)/' "$RECIPES_DIR/libzlib/__init__.py" || true
+          # Fix zlib check
+          sed -i 's/if not self.buildozer.file_exists('\''\/usr\/include\/zlib.h'\''):/if False: # patched/g' ~/.local/lib/python*/site-packages/buildozer/targets/android.py
+          sed -i 's/if not buildops.file_exists('\''\/usr\/include\/zlib.h'\''):/if False: # patched/g' ~/.local/lib/python*/site-packages/buildozer/targets/android.py
 
-      - name: Compilar APK
+          # Fix AIDL and SDK version
+          mkdir -p ~/.buildozer/android/platform/android-sdk/build-tools
+          ln -sf ~/.buildozer/android/platform/android-sdk/build-tools/30.0.3 ~/.buildozer/android/platform/android-sdk/build-tools/37.0.0 || true
+
+          # Fix zip / ioctl error
+          sed -i 's/zip -r/zip -rq/g' ~/.local/lib/python*/site-packages/buildozer/targets/android.py
+          sed -i 's/subprocess.call(\[\"zip\"/subprocess.call(\[\"zip\", \"-q\"/g' ~/.local/lib/python*/site-packages/buildozer/targets/android.py
+          stty sane || true
+
+      - name: Run build
         run: |
-          buildozer android debug --log-level 2
+          buildozer android debug --no-warmup --verbose
 
-      - name: Guardar APK final
+      - name: Upload APK
         uses: actions/upload-artifact@v4
+        if: success()
         with:
-          name: GestorMasterS-APK-DEFINITIVO
+          name: GestorMasterS-APK
           path: bin/*.apk
-          retention-days: 90
