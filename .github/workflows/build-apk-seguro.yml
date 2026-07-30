@@ -17,7 +17,7 @@ jobs:
       ANDROID_SDK_LICENSE_ACCEPTED: true
       CI: true
     steps:
-      - name: Eliminar cachés viejos
+      - name: Eliminar cachés y restos viejos
         run: |
           rm -rf ~/.buildozer
           rm -rf ~/.cache/pip
@@ -37,10 +37,10 @@ jobs:
           sudo apt-get full-upgrade -y
           sudo apt-get install -y build-essential git zip unzip openjdk-17-jdk autoconf automake libtool pkg-config libssl-dev libffi-dev cmake ninja-build
 
-      - name: Instalar versiones EXACTAS de herramientas
+      - name: Instalar versiones EXACTAS Y EXISTENTES
         run: |
           python -m pip install --upgrade pip setuptools wheel packaging
-          pip install buildozer==2.0.2 cryptography==49.0.1 python-for-android==2024.10.9
+          pip install buildozer==2.0.0 cryptography==49.0.1 python-for-android==2024.10.9
 
       - name: Aplicar todos los parches
         run: |
