@@ -22,8 +22,8 @@ android.permissions = INTERNET, WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE, R
 
 # USAMOS LO QUE YA EXISTE EN EL SISTEMA, SIN FORZAR VERSIONES QUE NO ESTAN
 android.api = 34
-android.ndk = r25b
-
+android.ndk = 25c
+android.api = 34
 android.build-tools = 34.0.0
 android.archs = arm64-v8a
 
