@@ -1,4 +1,4 @@
-name: Compilar GestorMasterS
+name: Compilar GestorMasterS DEFINITIVO
 
 on:
   workflow_dispatch:
@@ -7,29 +7,31 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout código
+      - name: Obtener código más reciente
         uses: actions/checkout@v4
 
-      - name: Instalar Python
+      - name: Instalar Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Instalar dependencias del sistema
+      - name: Instalar paquetes del sistema
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y build-essential git zip unzip openjdk-17-jdk wget libssl-dev libffi-dev zlib1g-dev
+          sudo apt-get install -y build-essential git zip unzip openjdk-17-jdk wget
 
-      - name: Instalar Buildozer y herramientas
+      - name: Instalar Buildozer y componentes
         run: |
           python -m pip install --upgrade pip setuptools wheel
           pip install buildozer==1.5.0 cython==0.29.37
 
-      - name: Compilar APK
-        run: buildozer android debug
+      - name: Compilar APK con registro completo
+        run: |
+          sudo apt-get install -y autoconf automake libtool pkg-config
+          buildozer android debug --log-level 2
 
-      - name: Subir artefacto APK
+      - name: Guardar APK final
         uses: actions/upload-artifact@v4
         with:
-          name: GestorMasterS-APK
+          name: GestorMasterS-APK-DEFINITIVO
           path: bin/*.apk
