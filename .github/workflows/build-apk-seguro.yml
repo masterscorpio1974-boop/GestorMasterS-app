@@ -43,7 +43,7 @@ jobs:
       - name: Install Python tools
         run: |
           python -m pip install --upgrade pip setuptools wheel
-          pip install buildozer cryptography python-for-android==2024.9.9
+          pip install buildozer cryptography python-for-android==2024.10.9
 
       - name: Apply all required fixes
         run: |
