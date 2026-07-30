@@ -1,4 +1,3 @@
-
 name: Compilar GestorMasterS DEFINITIVO
 
 on:
@@ -11,7 +10,7 @@ jobs:
       - name: Obtener código más reciente
         uses: actions/checkout@v4
 
-      - name: Instalar Python 3.11
+      - name: Instalar Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -36,4 +35,3 @@ jobs:
         with:
           name: GestorMasterS-APK-DEFINITIVO
           path: bin/*.apk
-concurrency: 
