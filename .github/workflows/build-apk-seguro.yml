@@ -23,7 +23,7 @@ jobs:
           pip install buildozer cython==0.29.36
       - name: Clean old cache
         run: |
-          rm -rf.buildozer
+          rm -rf .buildozer
           rm -rf./bin
           rm -rf bin || true
       - name: Build APK
