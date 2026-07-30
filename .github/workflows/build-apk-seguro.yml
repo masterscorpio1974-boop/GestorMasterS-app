@@ -1,48 +1,35 @@
-
 name: Compile GestorMasterS DEFINITIVO
-
-on:
-  workflow_dispatch:
-
+on: workflow_dispatch
 jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Java 17
+      - name: Set Java 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Python 3.11
+      - name: Set Python 3.11
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.11.9'
 
-      - name: Instalar dependencias del sistema
+      - name: Install system deps
         run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential git zip unzip openjdk-17-jdk autoconf automake libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev libltdl-dev
+          sudo apt update
+          sudo apt install -y zip unzip build-essential libffi-dev libssl-dev
+          pip install --upgrade pip
+          pip install buildozer==1.5.0 cython==0.29.36
 
-      - name: Instalar Buildozer y Cython compatibles
+      - name: Build APK
         run: |
-          python -m pip install --upgrade pip
-          pip install "cython<3.1.0" buildozer python-for-android
+          buildozer android debug
 
-      - name: Aceptar licencias Android
-        run: |
-          mkdir -p ~/.buildozer/android/platform/android-sdk/cmdline-tools
-          yes | buildozer android adb -- --help || true
-
-      - name: Compilar APK
-        run: |
-          buildozer android debug --log-level 2
-
-      - name: Subir APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: GestorMasterS-APK-FINAL
+          name: GestorMasterS-APK-Android16-API36
           path: bin/*.apk
