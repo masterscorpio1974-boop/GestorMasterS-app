@@ -6,7 +6,6 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,md,txt
 version = 1.0.0
 
-# VERSIONES SIN CONFLICTOS
 requirements = python3==3.11.9, kivy==2.3.0, kivymd==1.2.0, markdown, requests, urllib3, idna, certifi, charset-normalizer, filetype
 
 entrypoint = main.py
