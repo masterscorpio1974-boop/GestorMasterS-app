@@ -29,9 +29,9 @@ jobs:
 
       - name: Clean old cache
         run: |
-          rm -rf.buildozer
+          rm -rf .buildozer
           rm -rf ~/.buildozer
-          rm -rf bin
+          rm -rf bin || true
 
       - name: Build APK
         run: |
