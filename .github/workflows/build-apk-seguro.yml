@@ -1,4 +1,4 @@
-name: Complia GestorMasterS DEFINITIVO AZUL
+name: Compile GestorMasterS DEFINITIVO AZUL
 run-name: Construyendo ${{ github.actor }} - GestorMasterS
 on:
   workflow_dispatch:
@@ -11,10 +11,10 @@ jobs:
       CT: true
       BUILDOZER_ANDROID_SDK_ACCEPT_LICENSE: 1
     steps:
-      - name: Obtener código del repositorio
+      - name: Obtener codigo del repositorio
         uses: actions/checkout@v4
 
-      - name: Instalar Python versión exacta
+      - name: Instalar Python version exacta
         uses: actions/setup-python@v5
         with:
           python-version: '3.11.9'
@@ -45,7 +45,7 @@ jobs:
         run: |
           rm -rf .buildozer bin __pycache__ *.pyc || true
 
-      - name: Ejecutar compilación
+      - name: Ejecutar compilacion
         run: |
           buildozer android debug --no-warnup --verbose
 
