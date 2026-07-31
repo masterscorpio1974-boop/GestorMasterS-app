@@ -35,6 +35,8 @@ jobs:
 
       - name: Aceptar TODAS las licencias SDK de una vez
         run: |
+          mkdir -p ~/.android
+          touch ~/.android/repositories.cfg
           yes | sdkmanager --licenses || true
 
       - name: Borrar basura anterior
