@@ -46,6 +46,4 @@ android.permissions = INTERNET, WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE, V
 android.ant = auto
 android.use_legacy_storage = True
 android.allow_backup = True
-android.backup_rules =
-# Para Android 12+ que exige exported
-android.manifest.intent_filters =
+
