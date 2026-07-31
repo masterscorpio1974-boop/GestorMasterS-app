@@ -2,12 +2,17 @@
 title = GestorMasterS
 package.name = gestormasters
 package.domain = com.masterscorpio.gestormasters
-source.dir =.
+source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,json,ttf
 version = 1.0
-requirements = hostpython3==3.11.9,python3==3.11.9,cython==0.29.36,kivy==2.3.1,kivymd==1.2.0,Pillow
+
+# Versiones exactas, sin conflictos, con psutil agregado
+requirements = hostpython3==3.11.9,python3==3.11.9,cython==0.29.36,kivy==2.3.1,kivymd==1.2.0,Pillow,psutil
+
 orientation = portrait
 fullscreen = 0
+
+# Solo permiso necesario: sin almacenamiento externo obligatorio
 android.permissions = INTERNET
 android.archs = arm64-v8a
 android.api = 33
