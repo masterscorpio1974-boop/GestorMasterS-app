@@ -1,11 +1,13 @@
 import os
 import shutil
 import sqlite3
+import psutil
 from datetime import datetime
 from kivymd.app import MDApp
 from kivy.lang import Builder
-from kivy.uix.screenmanager import Screen
+from kivymd.uix.dialog import MDDialog
 
+# ==================== RUTAS Y BASE DE DATOS (TAL CUAL TU DISEÑO ORIGINAL) ====================
 def get_base_dir():
     app = MDApp.get_running_app()
     if app:
@@ -57,34 +59,61 @@ def create_backup():
 def generate_report():
     notes = get_entries("note")
     tasks = get_entries("task")
-    report_text = f"REPORT {datetime.now()}\nNotes: {len(notes)} Tasks: {len(tasks)}\n\n"
+    report_text = f"INFORME GENERADO: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\nNOTAS: {len(notes)} | TAREAS: {len(tasks)}\n\n"
     for content, date in notes[:20]:
-        report_text += f"[NOTE {date}] {content}\n"
+        report_text += f"[NOTA · {date}] {content}\n"
     for content, date in tasks[:20]:
-        report_text += f"[TASK {date}] {content}\n"
-    output_path = get_path("GENERATED_FILES", f"Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt")
+        report_text += f"[TAREA · {date}] {content}\n"
+    output_path = get_path("GENERATED_FILES", f"Informe_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt")
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(report_text)
     return output_path
 
-# REDISEÑO COMPLETO INTERFAZ NEÓN CYBERPUNK
+# ==================== NUEVO: DETECCIÓN DE EQUIPO Y SUGERENCIA DE MODELO ====================
+def detect_device_capabilities():
+    try:
+        total_ram_gb = round(psutil.virtual_memory().total / (1024 **3))
+        free_storage_gb = round(shutil.disk_usage(get_base_dir()).free / (1024**3))
+    except:
+        total_ram_gb = 2
+        free_storage_gb = 1
+
+    if total_ram_gb >= 10 and free_storage_gb >= 8:
+        return f"✅ Dispositivo: {total_ram_gb}GB RAM | {free_storage_gb}GB libres\n🔹 Recomendado: Mistral-7B-Instruct · Ideal para código, Termux y seguridad"
+    elif total_ram_gb >= 6 and free_storage_gb >= 4:
+        return f"✅ Dispositivo: {total_ram_gb}GB RAM | {free_storage_gb}GB libres\n🔹 Recomendado: Llama 3.2-3B · Equilibrado y muy capaz"
+    elif total_ram_gb >= 3 and free_storage_gb >= 2:
+        return f"✅ Dispositivo: {total_ram_gb}GB RAM | {free_storage_gb}GB libres\n🔹 Recomendado: Gemma-2B-it · Ligero y funcional"
+    else:
+        return f"✅ Dispositivo: {total_ram_gb}GB RAM | {free_storage_gb}GB libres\n🔹 Recomendado: modelos de 1B a 1.5B de parámetros"
+
+def check_first_run():
+    config_file = get_path("CONFIG", "inicializado.ok")
+    if not os.path.exists(config_file):
+        return True
+    return False
+
+def mark_initialized():
+    with open(get_path("CONFIG", "inicializado.ok"), "w") as f:
+        f.write(datetime.now().isoformat())
+
+# ==================== INTERFAZ: TU DISEÑO NEÓN + TODOS LOS TEXTOS CORREGIDOS ====================
 LAYOUT = '''
 MDScreen:
-    md_bg_color: 0, 0, 0, 1  # Negro puro para resaltar el neón
+    md_bg_color: 0, 0, 0, 1
 
     MDBoxLayout:
         orientation: 'vertical'
         padding: dp(20)
         spacing: dp(15)
 
-        # Encabezado con Logo Estilo Escudo "S"
         MDBoxLayout:
             orientation: 'vertical'
             size_hint_y: None
             height: dp(160)
             spacing: dp(5)
             Image:
-                source: 'icon.png'  # Asegúrate de que esté en la raíz de tu proyecto
+                source: 'icon.png'
                 size_hint: (None, None)
                 size: (dp(100), dp(100))
                 pos_hint: {"center_x": .5}
@@ -94,7 +123,7 @@ MDScreen:
                 font_style: "H5"
                 bold: True
                 theme_text_color: "Custom"
-                text_color: 0, 0.64, 1, 1  # Azul Neón
+                text_color: 0, 0.64, 1, 1
             MDLabel:
                 text: "Panel de control • Notas y Tareas"
                 halign: "center"
@@ -102,20 +131,16 @@ MDScreen:
                 theme_text_color: "Custom"
                 text_color: 0.5, 0.5, 0.5, 1
 
-        # Campo de entrada estilizado oscuro con borde
         MDBoxLayout:
             size_hint_y: None
             height: dp(55)
             padding: [dp(10), 0, dp(10), 0]
             canvas.before:
-                Color:
-                    rgba: 0, 0.64, 1, 0.3  # Línea guía neón tenue
-                Line:
-                    width: 1.2
-                    rounded_rectangle: (self.x, self.y, self.width, self.height, dp(8))
+                Color: rgba: 0, 0.64, 1, 0.3
+                Line: width: 1.2, rounded_rectangle: (self.x, self.y, self.width, self.height, dp(8))
             TextInput:
                 id: input_field
-                hint_text: "Write note or task..."
+                hint_text: "Escribir nota o tarea..."
                 background_color: 0, 0, 0, 0
                 foreground_color: 1, 1, 1, 1
                 hint_text_color: 0.4, 0.4, 0.4, 1
@@ -123,7 +148,6 @@ MDScreen:
                 cursor_color: 0, 0.64, 1, 1
                 padding_y: [self.height / 2 - (self.line_height / 2), 0]
 
-        # Botones Principales Superiores (Guardar con Bordes Redondeados)
         MDBoxLayout:
             size_hint_y: None
             height: dp(48)
@@ -141,17 +165,16 @@ MDScreen:
                 size_hint_x: 0.5
                 on_release: app.save_task()
 
-        # Contenedor de Tarjetas de visualización (Efecto Contorno Neón)
         MDCard:
             orientation: "vertical"
             padding: dp(15)
-            md_bg_color: 0.02, 0.05, 0.1, 0.6  # Azul profundo translúcido
-            line_color: 0, 0.64, 1, 1  # Borde brillante Neón
+            md_bg_color: 0.02, 0.05, 0.1, 0.6
+            line_color: 0, 0.64, 1, 1
             line_width: 1.5
             radius: [12, 12, 12, 12]
             
             MDLabel:
-                text: "Registros en Sistema"
+                text: "Registros del Sistema"
                 font_style: "Subtitle1"
                 bold: True
                 theme_text_color: "Custom"
@@ -168,30 +191,30 @@ MDScreen:
                     id: content_list
                     size_hint_y: None
                     height: self.texture_size[1]
-                    text: "No data yet"
+                    text: "Sin entradas registradas aún"
                     theme_text_color: "Custom"
                     text_color: 0.8, 0.9, 1, 1
                     font_style: "Body2"
 
-        # Botones de Sistema Inferiores
         MDBoxLayout:
             size_hint_y: None
             height: dp(45)
             spacing: dp(15)
             MDRoundFlatButton:
-                text: "Generate Report"
+                text: "Generar Informe"
                 text_color: 0, 0.64, 1, 1
                 line_color: 0, 0.64, 1, 1
                 size_hint_x: 0.5
                 on_release: app.make_report()
             MDRoundFlatButton:
-                text: "Backup Data"
+                text: "Respaldar Datos"
                 text_color: 0, 0.64, 1, 1
                 line_color: 0, 0.64, 1, 1
                 size_hint_x: 0.5
                 on_release: app.make_backup()
 '''
 
+# ==================== APLICACIÓN PRINCIPAL ====================
 class GestorApp(MDApp):
     def build(self):
         self.theme_cls.theme_style = "Dark"
@@ -201,29 +224,49 @@ class GestorApp(MDApp):
 
     def on_start(self):
         self.refresh_list()
+        # Solo muestra al abrir por PRIMERA VEZ
+        if check_first_run():
+            self.show_device_welcome()
+
+    def show_device_welcome(self):
+        info = detect_device_capabilities()
+        self.dialog = MDDialog(
+            title = "Bienvenido a Gestor Master S",
+            text = f"{info}\n\nLa app funciona 100% sin conexión hasta que tú decidas descargar un modelo.",
+            buttons = [
+                MDRoundFlatButton(text="Entendido", on_release=lambda x: self.close_dialog())
+            ]
+        )
+        self.dialog.open()
+
+    def close_dialog(self):
+        self.dialog.dismiss()
+        mark_initialized()
 
     def refresh_list(self):
         display_text = ""
         for content, date in get_entries("note"):
-            display_text += f"▪ [NOTE {date}] {content}\n\n"
+            display_text += f"▪ [NOTA · {date}] {content}\n\n"
         for content, date in get_entries("task"):
-            display_text += f"▪ [TASK {date}] {content}\n\n"
-        self.root.ids.content_list.text = display_text or "No system entries recorded."
+            display_text += f"▪ [TAREA · {date}] {content}\n\n"
+        self.root.ids.content_list.text = display_text or "Sin entradas registradas aún"
 
     def save_note(self):
-        if self.root.ids.input_field.text.strip():
-            add_entry("note", self.root.ids.input_field.text.strip())
+        texto = self.root.ids.input_field.text.strip()
+        if texto:
+            add_entry("note", texto)
             self.root.ids.input_field.text = ""
             self.refresh_list()
 
     def save_task(self):
-        if self.root.ids.input_field.text.strip():
-            add_entry("task", self.root.ids.input_field.text.strip())
+        texto = self.root.ids.input_field.text.strip()
+        if texto:
+            add_entry("task", texto)
             self.root.ids.input_field.text = ""
             self.refresh_list()
 
     def make_report(self):
-        path = generate_report()
+        generate_report()
         self.refresh_list()
 
     def make_backup(self):
