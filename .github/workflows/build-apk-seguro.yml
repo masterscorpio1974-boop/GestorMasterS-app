@@ -1,7 +1,7 @@
 name: Compile GestorMasterS DEFINITIVO AZUL
 run-name: Construyendo ${{ github.actor }} • GestorMasterS
 on:
-  workflow_dispatch:
+  workflow_dispatch
 
 jobs:
   build:
@@ -9,6 +9,7 @@ jobs:
     env:
       ANDROID_SDK_LICENSE_ACCEPTED: true
       CI: true
+      BUILDOZER_ANDROID_SDK_ACCEPT_LICENSE: 1
     steps:
       - name: Obtener código
         uses: actions/checkout@v4
@@ -31,6 +32,10 @@ jobs:
           sudo apt install -y unzip zip libffi-dev libssl-dev autoconf automake libtool pkg-config
           pip install --upgrade pip setuptools wheel
           pip install buildozer==1.5.0 cython==0.29.36
+
+      - name: Aceptar TODAS las licencias SDK de una vez
+        run: |
+          yes | sdkmanager --licenses || true
 
       - name: Borrar basura anterior
         run: |
