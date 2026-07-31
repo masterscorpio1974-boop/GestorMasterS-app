@@ -32,14 +32,27 @@ jobs:
           pip install --upgrade pip setuptools wheel
           pip install buildozer==1.5.0 cython==0.29.36
 
-      - name: Pre-instalar y Aceptar SDK de Android 34
+      - name: Configurar estructura oficial de Android SDK Manager
         run: |
+          # Crear directorios objetivos base de Buildozer
           mkdir -p ~/.android
           touch ~/.android/repositories.cfg
-          # Crear directorios y forzar aceptacion de licencias estables
+          mkdir -p ~/.buildozer/android/platform/android-sdk/tools/bin
+          
+          # Descargar cmdline-tools oficiales de Android para poblar la ruta esperada
+          wget -q https://google.com -O cmdline.zip
+          unzip -q cmdline.zip
+          
+          # Mover los ejecutables binarios indispensables para Buildozer a tools/bin
+          cp -r cmdline-tools/bin/* ~/.buildozer/android/platform/android-sdk/tools/bin/
+          
+          # Inyectar licencias firmadas pre-aprobadas directamente
           mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
           echo -e "\n244ac7ae5e2134cc74d480f361f31b8a11e80ffd" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
           echo -e "\n851659751996d669b30329afac260217c21a511b" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-preview-license
+          
+          # Limpiar archivos temporales de descarga
+          rm -rf cmdline.zip cmdline-tools
 
       - name: Borrar datos de ejecuciones anteriores
         run: |
