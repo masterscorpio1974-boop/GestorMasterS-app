@@ -67,44 +67,128 @@ def generate_report():
         f.write(report_text)
     return output_path
 
+# REDISEÑO COMPLETO INTERFAZ NEÓN CYBERPUNK
 LAYOUT = '''
-Screen:
+MDScreen:
+    md_bg_color: 0, 0, 0, 1  # Negro puro para resaltar el neón
+
     MDBoxLayout:
         orientation: 'vertical'
-        md_bg_color: 0.05, 0.05, 0.10, 1
-        padding: dp(10)
-        spacing: dp(10)
-        MDTextField:
-            id: input_field
-            hint_text: "Write note or task..."
-            mode: "fill"
+        padding: dp(20)
+        spacing: dp(15)
+
+        # Encabezado con Logo Estilo Escudo "S"
         MDBoxLayout:
+            orientation: 'vertical'
             size_hint_y: None
-            height: dp(50)
-            spacing: dp(10)
-            MDRaisedButton:
-                text: "Save Note"
-                md_bg_color: 0, 0.58, 1, 1
-                on_release: app.save_note()
-            MDRaisedButton:
-                text: "Save Task"
-                md_bg_color: 0, 0.78, 1, 1
-                on_release: app.save_task()
-        ScrollView:
+            height: dp(160)
+            spacing: dp(5)
+            Image:
+                source: 'icon.png'  # Asegúrate de que esté en la raíz de tu proyecto
+                size_hint: (None, None)
+                size: (dp(100), dp(100))
+                pos_hint: {"center_x": .5}
             MDLabel:
-                id: content_list
-                size_hint_y: None
-                height: self.texture_size[1]
-                text: "No data yet"
+                text: "Gestor Master S"
+                halign: "center"
+                font_style: "H5"
+                bold: True
+                theme_text_color: "Custom"
+                text_color: 0, 0.64, 1, 1  # Azul Neón
+            MDLabel:
+                text: "Panel de control • Notas y Tareas"
+                halign: "center"
+                font_style: "Caption"
+                theme_text_color: "Custom"
+                text_color: 0.5, 0.5, 0.5, 1
+
+        # Campo de entrada estilizado oscuro con borde
         MDBoxLayout:
             size_hint_y: None
-            height: dp(50)
-            spacing: dp(10)
-            MDRaisedButton:
+            height: dp(55)
+            padding: [dp(10), 0, dp(10), 0]
+            canvas.before:
+                Color:
+                    rgba: 0, 0.64, 1, 0.3  # Línea guía neón tenue
+                Line:
+                    width: 1.2
+                    rounded_rectangle: (self.x, self.y, self.width, self.height, dp(8))
+            TextInput:
+                id: input_field
+                hint_text: "Write note or task..."
+                background_color: 0, 0, 0, 0
+                foreground_color: 1, 1, 1, 1
+                hint_text_color: 0.4, 0.4, 0.4, 1
+                multiline: False
+                cursor_color: 0, 0.64, 1, 1
+                padding_y: [self.height / 2 - (self.line_height / 2), 0]
+
+        # Botones Principales Superiores (Guardar con Bordes Redondeados)
+        MDBoxLayout:
+            size_hint_y: None
+            height: dp(48)
+            spacing: dp(15)
+            MDFillRoundFlatButton:
+                text: "  + Guardar Nota  "
+                md_bg_color: 0, 0.5, 0.9, 1
+                text_color: 1, 1, 1, 1
+                size_hint_x: 0.5
+                on_release: app.save_note()
+            MDFillRoundFlatButton:
+                text: "  + Guardar Tarea  "
+                md_bg_color: 0, 0.65, 1, 1
+                text_color: 1, 1, 1, 1
+                size_hint_x: 0.5
+                on_release: app.save_task()
+
+        # Contenedor de Tarjetas de visualización (Efecto Contorno Neón)
+        MDCard:
+            orientation: "vertical"
+            padding: dp(15)
+            md_bg_color: 0.02, 0.05, 0.1, 0.6  # Azul profundo translúcido
+            line_color: 0, 0.64, 1, 1  # Borde brillante Neón
+            line_width: 1.5
+            radius: [12, 12, 12, 12]
+            
+            MDLabel:
+                text: "Registros en Sistema"
+                font_style: "Subtitle1"
+                bold: True
+                theme_text_color: "Custom"
+                text_color: 0, 0.75, 1, 1
+                size_hint_y: None
+                height: dp(25)
+            
+            MDSeparator:
+                color: 0, 0.64, 1, 0.4
+
+            ScrollView:
+                bar_width: dp(4)
+                MDLabel:
+                    id: content_list
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                    text: "No data yet"
+                    theme_text_color: "Custom"
+                    text_color: 0.8, 0.9, 1, 1
+                    font_style: "Body2"
+
+        # Botones de Sistema Inferiores
+        MDBoxLayout:
+            size_hint_y: None
+            height: dp(45)
+            spacing: dp(15)
+            MDRoundFlatButton:
                 text: "Generate Report"
+                text_color: 0, 0.64, 1, 1
+                line_color: 0, 0.64, 1, 1
+                size_hint_x: 0.5
                 on_release: app.make_report()
-            MDRaisedButton:
+            MDRoundFlatButton:
                 text: "Backup Data"
+                text_color: 0, 0.64, 1, 1
+                line_color: 0, 0.64, 1, 1
+                size_hint_x: 0.5
                 on_release: app.make_backup()
 '''
 
@@ -121,10 +205,10 @@ class GestorApp(MDApp):
     def refresh_list(self):
         display_text = ""
         for content, date in get_entries("note"):
-            display_text += f"[NOTE {date}] {content}\n"
+            display_text += f"▪ [NOTE {date}] {content}\n\n"
         for content, date in get_entries("task"):
-            display_text += f"[TASK {date}] {content}\n"
-        self.root.ids.content_list.text = display_text or "Empty"
+            display_text += f"▪ [TASK {date}] {content}\n\n"
+        self.root.ids.content_list.text = display_text or "No system entries recorded."
 
     def save_note(self):
         if self.root.ids.input_field.text.strip():
@@ -145,4 +229,5 @@ class GestorApp(MDApp):
     def make_backup(self):
         create_backup()
 
-GestorApp().run()
+if __name__ == '__main__':
+    GestorApp().run()
