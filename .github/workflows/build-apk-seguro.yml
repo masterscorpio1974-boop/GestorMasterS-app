@@ -1,13 +1,11 @@
 name: Compilar APK AZUL CRISTAL DEFINITIVO
 
 on:
-  push:
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Obtener código
         uses: actions/checkout@v4
@@ -26,43 +24,31 @@ jobs:
       - name: Instalar todo el sistema
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            python3-pip python3-dev \
-            build-essential git ffmpeg \
-            libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
-            libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev \
-            zlib1g-dev libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
-            libltdl-dev libffi-dev libssl-dev \
-            libasound2-dev libpulse-dev \
-            unzip wget curl openjdk-17-jdk
+          sudo apt-get install -y python3-pip python3-dev build-essential git ffmpeg libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good libltdl-dev libffi-dev libssl-dev libasound2-dev libpulse-dev unzip wget curl openjdk-17-jdk
           pip install --upgrade pip
           pip install --upgrade buildozer cython==0.29.36 virtualenv
-          export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
-          export ANDROID_SDK_ROOT=$ANDROID_HOME
-          mkdir -p ~/.android
-          touch ~/.android/repositories.cfg
-          # Pre-instala build-tools que Buildozer va a pedir
-          yes | sdkmanager "build-tools;34.0.0" "build-tools;37.0.0" "platform-tools" || true
 
-      - name: Aceptar TODAS las licencias SDK de una vez
+      - name: Pre-crear estructura SDK para que no llore
         run: |
           export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
           export ANDROID_SDK_ROOT=$ANDROID_HOME
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
+          mkdir -p $ANDROID_HOME/cmdline-tools
           mkdir -p ~/.android
           touch ~/.android/repositories.cfg
-          mkdir -p $ANDROID_HOME/cmdline-tools
-          # Acepta licencias en las dos rutas posibles
+          # Descarga cmdline-tools oficial si buildozer no lo ha hecho
+          cd /tmp
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip
+          unzip -q cmdline-tools.zip
+          mkdir -p $ANDROID_HOME/cmdline-tools/latest
+          cp -r cmdline-tools/* $ANDROID_HOME/cmdline-tools/latest/ || true
+          # Crea el symlink viejo que busca buildozer
+          mkdir -p $ANDROID_HOME/tools/bin
+          ln -sf $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager $ANDROID_HOME/tools/bin/sdkmanager || true
+          ln -sf $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager $ANDROID_HOME/tools/bin/avdmanager || true
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
           yes | sdkmanager --licenses || true
-          if [ -f "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" ]; then
-            yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
-          fi
-          # Fuerza instalación de los dos build-tools para que no llore por el aidl
-          yes | sdkmanager "build-tools;34.0.0" "build-tools;37.0.0" "platform-tools" || true
-          if [ -f "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" ]; then
-            yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;34.0.0" "build-tools;37.0.0" "platform-tools" || true
-          fi
-          ls -l $ANDROID_HOME/build-tools/ || true
+          yes | sdkmanager "build-tools;34.0.0" "build-tools;37.0.0" "platform-tools" "platforms;android-33" || true
+          ls -R $ANDROID_HOME/cmdline-tools/ | head -n 100
 
       - name: Instalar Buildozer y dependencias
         run: |
@@ -74,7 +60,10 @@ jobs:
         run: |
           export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
           export ANDROID_SDK_ROOT=$ANDROID_HOME
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/build-tools/34.0.0:$PATH
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/build-tools/34.0.0:$ANDROID_HOME/platform-tools:$PATH
+          # Asegura el symlink de nuevo por si buildozer lo borró
+          mkdir -p $ANDROID_HOME/tools/bin
+          ln -sf $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager $ANDROID_HOME/tools/bin/sdkmanager || true
           buildozer -v android debug
 
       - name: Subir archivo final
