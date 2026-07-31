@@ -32,11 +32,14 @@ jobs:
           pip install --upgrade pip setuptools wheel
           pip install buildozer==1.5.0 cython==0.29.36
 
-      - name: Pre-instalar y Aceptar SDK de Android
+      - name: Pre-instalar y Aceptar SDK de Android 34
         run: |
           mkdir -p ~/.android
           touch ~/.android/repositories.cfg
-          buildozer android sdk install || true
+          # Crear directorios y forzar aceptacion de licencias estables
+          mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
+          echo -e "\n244ac7ae5e2134cc74d480f361f31b8a11e80ffd" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+          echo -e "\n851659751996d669b30329afac260217c21a511b" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-preview-license
 
       - name: Borrar datos de ejecuciones anteriores
         run: |
