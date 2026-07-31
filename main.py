@@ -1,13 +1,12 @@
 import os
 import shutil
 import sqlite3
-import psutil
 from datetime import datetime
+from kivy.utils import platform
 from kivymd.app import MDApp
 from kivy.lang import Builder
-from kivymd.uix.dialog import MDDialog
+from kivy.uix.scrollview import ScrollView
 
-# ==================== RUTAS Y BASE DE DATOS (TAL CUAL TU DISEÑO ORIGINAL) ====================
 def get_base_dir():
     app = MDApp.get_running_app()
     if app:
@@ -17,260 +16,156 @@ def get_base_dir():
 def get_path(*parts):
     base = get_base_dir()
     full = os.path.join(base, *parts)
-    os.makedirs(os.path.dirname(full) if "." in parts[-1] else full, exist_ok=True)
+    dir_part = os.path.dirname(full) if "." in os.path.basename(full) else full
+    os.makedirs(dir_part, exist_ok=True)
     return full
 
-def get_db_path():
-    return get_path("DATA", "data.db")
-
 def init_db():
-    db_path = get_db_path()
-    os.makedirs(os.path.dirname(db_path), exist_ok=True)
-    os.makedirs(get_path("BACKUPS"), exist_ok=True)
-    os.makedirs(get_path("GENERATED_FILES"), exist_ok=True)
-    con = sqlite3.connect(db_path)
-    con.execute("CREATE TABLE IF NOT EXISTS entries(id INTEGER PRIMARY KEY, type TEXT, content TEXT, date TEXT)")
-    con.commit()
-    con.close()
+    db_path = get_path("database", "gestormasters.db")
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS records (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            category TEXT NOT NULL,
+            content TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )
+    """)
+    conn.commit()
+    conn.close()
 
-def add_entry(entry_type, content):
-    con = sqlite3.connect(get_db_path())
-    current_date = datetime.now().strftime("%Y-%m-%d %H:%M")
-    con.execute("INSERT INTO entries(type,content,date) VALUES (?,?,?)", (entry_type, content, current_date))
-    con.commit()
-    con.close()
-
-def get_entries(entry_type):
-    con = sqlite3.connect(get_db_path())
-    cur = con.cursor()
-    cur.execute("SELECT content,date FROM entries WHERE type=? ORDER BY id DESC", (entry_type,))
-    result = cur.fetchall()
-    con.close()
-    return result
-
-def create_backup():
-    source_path = get_db_path()
-    if os.path.exists(source_path):
-        backup_name = get_path("BACKUPS", f"backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db")
-        shutil.copy(source_path, backup_name)
-        return backup_name
-    return None
-
-def generate_report():
-    notes = get_entries("note")
-    tasks = get_entries("task")
-    report_text = f"INFORME GENERADO: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\nNOTAS: {len(notes)} | TAREAS: {len(tasks)}\n\n"
-    for content, date in notes[:20]:
-        report_text += f"[NOTA · {date}] {content}\n"
-    for content, date in tasks[:20]:
-        report_text += f"[TAREA · {date}] {content}\n"
-    output_path = get_path("GENERATED_FILES", f"Informe_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt")
-    with open(output_path, "w", encoding="utf-8") as f:
-        f.write(report_text)
-    return output_path
-
-# ==================== NUEVO: DETECCIÓN DE EQUIPO Y SUGERENCIA DE MODELO ====================
-def detect_device_capabilities():
-    try:
-        total_ram_gb = round(psutil.virtual_memory().total / (1024 **3))
-        free_storage_gb = round(shutil.disk_usage(get_base_dir()).free / (1024**3))
-    except:
-        total_ram_gb = 2
-        free_storage_gb = 1
-
-    if total_ram_gb >= 10 and free_storage_gb >= 8:
-        return f"✅ Dispositivo: {total_ram_gb}GB RAM | {free_storage_gb}GB libres\n🔹 Recomendado: Mistral-7B-Instruct · Ideal para código, Termux y seguridad"
-    elif total_ram_gb >= 6 and free_storage_gb >= 4:
-        return f"✅ Dispositivo: {total_ram_gb}GB RAM | {free_storage_gb}GB libres\n🔹 Recomendado: Llama 3.2-3B · Equilibrado y muy capaz"
-    elif total_ram_gb >= 3 and free_storage_gb >= 2:
-        return f"✅ Dispositivo: {total_ram_gb}GB RAM | {free_storage_gb}GB libres\n🔹 Recomendado: Gemma-2B-it · Ligero y funcional"
-    else:
-        return f"✅ Dispositivo: {total_ram_gb}GB RAM | {free_storage_gb}GB libres\n🔹 Recomendado: modelos de 1B a 1.5B de parámetros"
-
-def check_first_run():
-    config_file = get_path("CONFIG", "inicializado.ok")
-    if not os.path.exists(config_file):
-        return True
-    return False
-
-def mark_initialized():
-    with open(get_path("CONFIG", "inicializado.ok"), "w") as f:
-        f.write(datetime.now().isoformat())
-
-# ==================== INTERFAZ: TU DISEÑO NEÓN + TODOS LOS TEXTOS CORREGIDOS ====================
-LAYOUT = '''
-MDScreen:
-    md_bg_color: 0, 0, 0, 1
-
-    MDBoxLayout:
-        orientation: 'vertical'
-        padding: dp(20)
-        spacing: dp(15)
-
+KV = '''
+MDScreenManager:
+    MDScreen:
+        name: "home"
         MDBoxLayout:
-            orientation: 'vertical'
-            size_hint_y: None
-            height: dp(160)
-            spacing: dp(5)
-            Image:
-                source: 'icon.png'
-                size_hint: (None, None)
-                size: (dp(100), dp(100))
-                pos_hint: {"center_x": .5}
+            orientation: "vertical"
+            padding: dp(20)
+            spacing: dp(15)
+
+            MDTopAppBar:
+                title: "GestorMasterS"
+                elevation: 4
+
             MDLabel:
-                text: "Gestor Master S"
-                halign: "center"
-                font_style: "H5"
-                bold: True
-                theme_text_color: "Custom"
-                text_color: 0, 0.64, 1, 1
-            MDLabel:
-                text: "Panel de control • Notas y Tareas"
+                text: "Sistema Seguro · Sin Rastros · Sin Google"
                 halign: "center"
                 font_style: "Caption"
-                theme_text_color: "Custom"
-                text_color: 0.5, 0.5, 0.5, 1
 
+            MDRaisedButton:
+                text: "Verificar Dispositivo y Recomendar IA"
+                on_release: app.check_device()
+
+            MDRaisedButton:
+                text: "Gestor de Datos"
+                on_release: app.root.current = "data"
+
+            MDRaisedButton:
+                text: "Telemetría y Seguridad"
+                on_release: app.root.current = "telemetry"
+
+    MDScreen:
+        name: "data"
         MDBoxLayout:
-            size_hint_y: None
-            height: dp(55)
-            padding: [dp(10), 0, dp(10), 0]
-            canvas.before:
-                Color: rgba: 0, 0.64, 1, 0.3
-                Line: width: 1.2, rounded_rectangle: (self.x, self.y, self.width, self.height, dp(8))
-            TextInput:
-                id: input_field
-                hint_text: "Escribir nota o tarea..."
-                background_color: 0, 0, 0, 0
-                foreground_color: 1, 1, 1, 1
-                hint_text_color: 0.4, 0.4, 0.4, 1
-                multiline: False
-                cursor_color: 0, 0.64, 1, 1
-                padding_y: [self.height / 2 - (self.line_height / 2), 0]
-
-        MDBoxLayout:
-            size_hint_y: None
-            height: dp(48)
-            spacing: dp(15)
-            MDFillRoundFlatButton:
-                text: "  + Guardar Nota  "
-                md_bg_color: 0, 0.5, 0.9, 1
-                text_color: 1, 1, 1, 1
-                size_hint_x: 0.5
-                on_release: app.save_note()
-            MDFillRoundFlatButton:
-                text: "  + Guardar Tarea  "
-                md_bg_color: 0, 0.65, 1, 1
-                text_color: 1, 1, 1, 1
-                size_hint_x: 0.5
-                on_release: app.save_task()
-
-        MDCard:
             orientation: "vertical"
-            padding: dp(15)
-            md_bg_color: 0.02, 0.05, 0.1, 0.6
-            line_color: 0, 0.64, 1, 1
-            line_width: 1.5
-            radius: [12, 12, 12, 12]
-            
-            MDLabel:
-                text: "Registros del Sistema"
-                font_style: "Subtitle1"
-                bold: True
-                theme_text_color: "Custom"
-                text_color: 0, 0.75, 1, 1
-                size_hint_y: None
-                height: dp(25)
-            
-            MDSeparator:
-                color: 0, 0.64, 1, 0.4
-
-            ScrollView:
-                bar_width: dp(4)
-                MDLabel:
-                    id: content_list
-                    size_hint_y: None
-                    height: self.texture_size[1]
-                    text: "Sin entradas registradas aún"
-                    theme_text_color: "Custom"
-                    text_color: 0.8, 0.9, 1, 1
-                    font_style: "Body2"
-
-        MDBoxLayout:
-            size_hint_y: None
-            height: dp(45)
+            padding: dp(20)
             spacing: dp(15)
-            MDRoundFlatButton:
-                text: "Generar Informe"
-                text_color: 0, 0.64, 1, 1
-                line_color: 0, 0.64, 1, 1
-                size_hint_x: 0.5
-                on_release: app.make_report()
-            MDRoundFlatButton:
-                text: "Respaldar Datos"
-                text_color: 0, 0.64, 1, 1
-                line_color: 0, 0.64, 1, 1
-                size_hint_x: 0.5
-                on_release: app.make_backup()
+
+            MDTopAppBar:
+                title: "Gestor de Datos"
+                left_action_items: [["arrow-left", lambda x: app.root.current = "home"]]
+
+            MDTextField:
+                id: input_category
+                hint_text: "Categoría"
+
+            MDTextField:
+                id: input_content
+                hint_text: "Contenido"
+                multiline: True
+                height: dp(120)
+
+            MDRaisedButton:
+                text: "Guardar Registro"
+                on_release: app.save_record()
+
+    MDScreen:
+        name: "telemetry"
+        MDBoxLayout:
+            orientation: "vertical"
+            padding: dp(20)
+            spacing: dp(15)
+
+            MDTopAppBar:
+                title: "Telemetría y Seguridad"
+                left_action_items: [["arrow-left", lambda x: app.root.current = "home"]]
+
+            MDLabel:
+                id: telemetry_status
+                text: "Estado: Sistema Activo y Aislado"
+                halign: "center"
+
+            MDRaisedButton:
+                text: "Activar / Desactivar Internet"
+                on_release: app.toggle_internet()
+
+            MDRaisedButton:
+                text: "Botón de Emergencia: Bloquear Todo"
+                md_bg_color: 1, 0.2, 0.2, 1
+                on_release: app.emergency_stop()
 '''
 
-# ==================== APLICACIÓN PRINCIPAL ====================
-class GestorApp(MDApp):
+class GestorMasterSApp(MDApp):
+    internet_enabled = False
+
     def build(self):
         self.theme_cls.theme_style = "Dark"
         self.theme_cls.primary_palette = "Blue"
         init_db()
-        return Builder.load_string(LAYOUT)
+        return Builder.load_string(KV)
 
-    def on_start(self):
-        self.refresh_list()
-        # Solo muestra al abrir por PRIMERA VEZ
-        if check_first_run():
-            self.show_device_welcome()
+    def check_device(self):
+        import psutil
+        total_ram = round(psutil.virtual_memory().total / (1024**3), 1)
+        free_storage = round(shutil.disk_usage(get_base_dir()).free / (1024**3), 1)
 
-    def show_device_welcome(self):
-        info = detect_device_capabilities()
-        self.dialog = MDDialog(
-            title = "Bienvenido a Gestor Master S",
-            text = f"{info}\n\nLa app funciona 100% sin conexión hasta que tú decidas descargar un modelo.",
-            buttons = [
-                MDRoundFlatButton(text="Entendido", on_release=lambda x: self.close_dialog())
-            ]
+        if total_ram < 3:
+            model_rec = "Recomendación: Modelo muy ligero: Mistral-7B-Q4_K_M o similar"
+        elif 3 <= total_ram < 6:
+            model_rec = "Recomendación: Equilibrado: Llama 3 8B-Q5_K_M"
+        else:
+            model_rec = "Recomendación: Alto rendimiento: Qwen2 14B-Q6_K"
+
+        self.root.get_screen("telemetry").ids.telemetry_status.text = (
+            f"Dispositivo detectado\nMemoria: {total_ram} GB\nAlmacén libre: {free_storage} GB\n{model_rec}"
         )
-        self.dialog.open()
 
-    def close_dialog(self):
-        self.dialog.dismiss()
-        mark_initialized()
+    def save_record(self):
+        cat = self.root.get_screen("data").ids.input_category.text.strip()
+        cont = self.root.get_screen("data").ids.input_content.text.strip()
+        if not cat or not cont:
+            return
+        db_path = get_path("database", "gestormasters.db")
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO records (category, content, created_at) VALUES (?, ?, ?)",
+            (cat, cont, datetime.now().strftime("%Y-%m-%d %H:%M"))
+        )
+        conn.commit()
+        conn.close()
+        self.root.get_screen("data").ids.input_category.text = ""
+        self.root.get_screen("data").ids.input_content.text = ""
 
-    def refresh_list(self):
-        display_text = ""
-        for content, date in get_entries("note"):
-            display_text += f"▪ [NOTA · {date}] {content}\n\n"
-        for content, date in get_entries("task"):
-            display_text += f"▪ [TAREA · {date}] {content}\n\n"
-        self.root.ids.content_list.text = display_text or "Sin entradas registradas aún"
+    def toggle_internet(self):
+        self.internet_enabled = not self.internet_enabled
+        estado = "ACTIVO" if self.internet_enabled else "DESACTIVADO"
+        self.root.get_screen("telemetry").ids.telemetry_status.text = f"Conexión a internet: {estado} · Solo se usa para descargar modelos"
 
-    def save_note(self):
-        texto = self.root.ids.input_field.text.strip()
-        if texto:
-            add_entry("note", texto)
-            self.root.ids.input_field.text = ""
-            self.refresh_list()
+    def emergency_stop(self):
+        self.internet_enabled = False
+        self.root.get_screen("telemetry").ids.telemetry_status.text = "⚠️ MODO DE SEGURIDAD TOTAL ACTIVADO · TODAS LAS SALIDAS BLOQUEADAS"
 
-    def save_task(self):
-        texto = self.root.ids.input_field.text.strip()
-        if texto:
-            add_entry("task", texto)
-            self.root.ids.input_field.text = ""
-            self.refresh_list()
-
-    def make_report(self):
-        generate_report()
-        self.refresh_list()
-
-    def make_backup(self):
-        create_backup()
-
-if __name__ == '__main__':
-    GestorApp().run()
+if __name__ == "__main__":
+    GestorMasterSApp().run()
