@@ -10,8 +10,6 @@ source.exclude_exts = spec,md,gitignore,yml
 source.exclude_dirs = bin,.buildozer,.git,__pycache__,CODIGO,DOCS,.github
 
 version = 1.0
-version.regex = __version__ = ['"](.*)['"]
-version.filename = %(source.dir)s/main.py
 
 requirements = python3,kivy==2.3.1,kivymd==1.2.0,pillow,psutil,android
 orientation = portrait
