@@ -18,11 +18,12 @@ android.archs = arm64-v8a
 android.api = 33
 android.minapi = 24
 android.ndk = 27c
+
 android.accept_sdk_license_agreement = True
 android.enable_androidx = True
 p4a.bootstrap = sdl2
 icon.filename = icon.png
-
+android.buildtools = 34.0.0
 [buildozer]
 log_level = 2
 warn_on_root = 1
