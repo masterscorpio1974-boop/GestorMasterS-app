@@ -1,25 +1,23 @@
-name: Compile GestorMasterS DEFINITIVO AZUL
-run-name: Construyendo ${{ github.actor }} • GestorMasterS
+name: Compilar APK AZUL CRISTAL DEFINITIVO
+
 on:
-  workflow_dispatch
+  push:
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
-    env:
-      ANDROID_SDK_LICENSE_ACCEPTED: true
-      CI: true
-      BUILDOZER_ANDROID_SDK_ACCEPT_LICENSE: 1
+    runs-on: ubuntu-latest
+
     steps:
       - name: Obtener código
         uses: actions/checkout@v4
 
-      - name: Python exacto
+      - name: Instalar Python exacto 3.11.9
         uses: actions/setup-python@v5
         with:
           python-version: '3.11.9'
 
-      - name: Java 17
+      - name: Instalar Java 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -27,29 +25,60 @@ jobs:
 
       - name: Instalar todo el sistema
         run: |
-          sudo apt update -y
-          sudo apt full-upgrade -y
-          sudo apt install -y unzip zip libffi-dev libssl-dev autoconf automake libtool pkg-config
-          pip install --upgrade pip setuptools wheel
-          pip install buildozer==1.5.0 cython==0.29.36
+          sudo apt-get update
+          sudo apt-get install -y \
+            python3-pip python3-dev \
+            build-essential git ffmpeg \
+            libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
+            libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev \
+            zlib1g-dev libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
+            libltdl-dev libffi-dev libssl-dev \
+            libasound2-dev libpulse-dev \
+            unzip wget curl openjdk-17-jdk
+          pip install --upgrade pip
+          pip install --upgrade buildozer cython==0.29.36 virtualenv
+          export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
+          export ANDROID_SDK_ROOT=$ANDROID_HOME
+          mkdir -p ~/.android
+          touch ~/.android/repositories.cfg
+          # Pre-instala build-tools que Buildozer va a pedir
+          yes | sdkmanager "build-tools;34.0.0" "build-tools;37.0.0" "platform-tools" || true
 
       - name: Aceptar TODAS las licencias SDK de una vez
         run: |
+          export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
+          export ANDROID_SDK_ROOT=$ANDROID_HOME
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
           mkdir -p ~/.android
           touch ~/.android/repositories.cfg
+          mkdir -p $ANDROID_HOME/cmdline-tools
+          # Acepta licencias en las dos rutas posibles
           yes | sdkmanager --licenses || true
+          if [ -f "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" ]; then
+            yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          fi
+          # Fuerza instalación de los dos build-tools para que no llore por el aidl
+          yes | sdkmanager "build-tools;34.0.0" "build-tools;37.0.0" "platform-tools" || true
+          if [ -f "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" ]; then
+            yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;34.0.0" "build-tools;37.0.0" "platform-tools" || true
+          fi
+          ls -l $ANDROID_HOME/build-tools/ || true
 
-      - name: Borrar basura anterior
+      - name: Instalar Buildozer y dependencias
         run: |
-          rm -rf .buildozer bin __pycache__ *.pyc || true
+          pip install kivy==2.3.1
+          pip install kivymd==1.2.0
+          pip install Pillow psutil
 
       - name: Compilar APK
         run: |
-          buildozer android debug --no-warmup --verbose
+          export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
+          export ANDROID_SDK_ROOT=$ANDROID_HOME
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/build-tools/34.0.0:$PATH
+          buildozer -v android debug
 
       - name: Subir archivo final
         uses: actions/upload-artifact@v4
         with:
-          name: GestorMasterS-APK-AZUL-CRISTAL
+          name: GestorMasterS-APK
           path: bin/*.apk
-          if-no-files-found: error
