@@ -1,14 +1,15 @@
 import json
 import os
 import platform
-import psutil
 import hashlib
 
 class SistemaTelemetria:
     def __init__(self):
         self.archivo_datos = "contactos_seguros.json"
-        # CORREGIDO: Se cambió .hevers() por .hexdigest() para evitar el crash de la app
-        self.clave_secreta = hashlib.sha256(platform.node().encode()).hexdigest() if hasattr(platform, 'node') else "ClaveSeguraMasterS123"
+        try:
+            self.clave_secreta = hashlib.sha256(platform.node().encode()).hexdigest() if hasattr(platform, 'node') else "ClaveSeguraMasterS123"
+        except Exception:
+            self.clave_secreta = "ClaveSeguraMasterS123"
         
     def _cifrar_texto(self, texto):
         if not texto: return ""
@@ -54,21 +55,42 @@ class SistemaTelemetria:
         return True
 
     def escanear_capacidades_equipo(self):
-        try:
-            ram_total_gb = round(psutil.virtual_memory().total / (1024 ** 3), 2)
-            nucleos_cpu = psutil.cpu_count(logical=True) or 2
-        except Exception:
-            ram_total_gb = 4.0
-            nucleos_cpu = 4
-        
+        """Usa el motor nativo del sistema operativo sin dependencias externas"""
         so = platform.system()
-        if so.lower() == "linux" and hasattr(os, "uname") and "android" in os.uname().release.lower():
-            so = "Android"
-        return {"so": so, "ram": ram_total_gb, "cpu_cores": nucleos_cpu, "arquitectura": platform.machine()}
+        cores = 4
+        ram_estimada = 4.0
+
+        # Validación nativa para Android y entornos Linux
+        if so.lower() == "linux":
+            if hasattr(os, "uname") and "android" in os.uname().release.lower():
+                so = "Android"
+            
+            # Intento de lectura directa del hardware en terminales Linux/Android
+            try:
+                cores = os.cpu_count() or 4
+                if os.path.exists("/proc/meminfo"):
+                    with open("/proc/meminfo", "r") as f:
+                        for line in f:
+                            if "MemTotal" in line:
+                                ram_kb = int(line.split()[1])
+                                ram_estimada = round(ram_kb / (1024 * 1024), 2)
+                                break
+            except Exception:
+                pass
+        else:
+            # Respaldo nativo directo para Windows y Mac
+            try:
+                cores = os.cpu_count() or 4
+            except Exception:
+                pass
+            ram_estimada = 8.0  # Asignación estándar para equipos de escritorio
+
+        return {"so": so, "ram": ram_estimada, "cpu_cores": cores, "arquitectura": platform.machine()}
 
     def sugerir_modelo_ia(self):
         info = self.escanear_capacidades_equipo()
         ram = info["ram"]
+        
         if ram < 3.5:
             modelo = "Gemma-2B-IT / TinyLlama-1.1B"
             entorno = "PocketPal App (Offline/Android)"
