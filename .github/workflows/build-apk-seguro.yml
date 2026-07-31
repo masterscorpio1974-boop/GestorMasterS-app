@@ -1,14 +1,14 @@
-name: Compile GestorMasterS DEFINITIVO AZUL
-run-name: Construyendo ${{ github.actor }} · GestorMasterS
+name: Complia GestorMasterS DEFINITIVO AZUL
+run-name: Construyendo ${{ github.actor }} - GestorMasterS
 on:
-  workflow_dispatch
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-22.04
     env:
       ANDROID_SDK_LICENSE_ACCEPTED: true
-      CI: true
+      CT: true
       BUILDOZER_ANDROID_SDK_ACCEPT_LICENSE: 1
     steps:
       - name: Obtener código del repositorio
@@ -29,7 +29,7 @@ jobs:
         run: |
           sudo apt update -y
           sudo apt full-upgrade -y
-          sudo apt install -y unzip zip libffi-dev libssl-dev autoconf automake libtool pkg-config
+          sudo apt install -y unzip zip libffi-dev libssl-dev autoconf automake libtool openjdk-17-jdk lib32stdc++6 lib32z1
           pip install --upgrade pip setuptools wheel
           pip install buildozer==1.5.0 cython==0.29.36
 
@@ -37,7 +37,9 @@ jobs:
         run: |
           mkdir -p ~/.android
           touch ~/.android/repositories.cfg
-          yes | sdkmanager --licenses || true
+          mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
+          echo -e "\n244ac7ae5e2134cc74d480f361f31b8a11e80ffd" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+          echo -e "\n851659751996d669b30329afac260217c21a511b" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-preview-license
 
       - name: Borrar datos de ejecuciones anteriores
         run: |
@@ -45,7 +47,7 @@ jobs:
 
       - name: Ejecutar compilación
         run: |
-          buildozer android debug --no-warmup --verbose
+          buildozer android debug --no-warnup --verbose
 
       - name: Subir el archivo APK final
         uses: actions/upload-artifact@v4
