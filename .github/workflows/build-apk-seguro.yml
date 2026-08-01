@@ -18,14 +18,13 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update -y
-          sudo apt install -y unzip zip libffi-dev libssl-dev autoconf automake libtool
-          pip install --upgrade pip
-          pip install buildozer cython==0.29.36
+          sudo apt install -y unzip zip libffi-dev libssl-dev autoconf automake libtool build-essential
+          pip install --upgrade pip git+https://github.com cython
       - name: Clean old cache
         run: |
           rm -rf .buildozer
           rm -rf bin
-          rm -rf ./bin || true
+          rm -rf ~/.bin || true
       - name: Build APK
         run: |
           yes | buildozer android debug
