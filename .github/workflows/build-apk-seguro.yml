@@ -19,7 +19,8 @@ jobs:
         run: |
           sudo apt update -y
           sudo apt install -y unzip zip libffi-dev libssl-dev autoconf automake libtool build-essential
-          pip install --upgrade pip git+https://github.com cython
+          pip install --upgrade pip
+          pip install buildozer cython
       - name: Clean old cache
         run: |
           rm -rf .buildozer
