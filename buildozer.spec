@@ -1,18 +1,18 @@
 [app]
 title = GestorMasterS
 package.name = gestormasters
-package.domain = com.masterscorpio.gestormasters
+package.domain = con.masterscorpio.gestormasters
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,json,ttf
 version = 1.0.0
 
-requirements = hostpython3==3.11.9,python3==3.11.9,cython==0.29.36,kivy==2.3.1,kivymd==1.2.0,pillow
+requirements = python3,kivy==2.3.1,kivymd==1.2.0,pillow,cython
 
 orientation = portrait
 fullscreen = 0
 
 android.permissions = INTERNET
-android.archs = arm64-v8a
+android.archs = armeabi-v7a, arm64-v8a
 android.api = 33
 android.minapi = 24
 android.ndk = 27c
