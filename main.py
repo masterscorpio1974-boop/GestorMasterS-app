@@ -15,12 +15,12 @@ class GestorMasterSApp(App):
         root = ScrollView(size_hint=(1, 1))
         self.contenedor = BoxLayout(orientation='vertical', padding=15, spacing=10, size_hint_y=None)
         self.contenedor.bind(minimum_height=self.contenedor.setter('height'))
-        
+
         self.contenedor.add_widget(Label(
-            text="SISTEMA GESTOR MASTER S", 
+            text="SISTEMA GESTOR MASTER S",
             font_size='22sp', color=(0, 0.6, 1, 1), size_hint_y=None, height=45
         ))
-        
+
         self.campos = {}
         campos_config = [
             ("nombre", "Nombre Completo"),
@@ -32,7 +32,7 @@ class GestorMasterSApp(App):
             ("ubicacion", "Coordenadas o Enlace de Mapa"),
             ("nota", "Notas Especiales")
         ]
-        
+
         for id_campo, placeholder in campos_config:
             txt_input = TextInput(
                 hint_text=placeholder,
@@ -46,32 +46,32 @@ class GestorMasterSApp(App):
             )
             self.campos[id_campo] = txt_input
             self.contenedor.add_widget(txt_input)
-            
+
         botones_layout = BoxLayout(orientation='horizontal', spacing=10, size_hint_y=None, height=50)
         btn_guardar = Button(text="GUARDAR DATOS", background_color=(0, 0.4, 0.9, 1), bold=True)
         btn_guardar.bind(on_press=self.procesar_guardado)
-        
+
         btn_ver = Button(text="VER ALMACENADOS", background_color=(0.1, 0.5, 0.2, 1), bold=True)
         btn_ver.bind(on_press=self.mostrar_registros)
-        
+
         botones_layout.add_widget(btn_guardar)
         botones_layout.add_widget(btn_ver)
         self.contenedor.add_widget(botones_layout)
-        
+
         btn_emergencia = Button(
-            text="BOTON DE EMERGENCIA: DESTRUIR TODO", 
-            background_color=(0.9, 0.1, 0.1, 1), 
+            text="BOTON DE EMERGENCIA: DESTRUIR TODO",
+            background_color=(0.9, 0.1, 0.1, 1),
             bold=True,
             size_hint_y=None,
             height=45
         )
         btn_emergencia.bind(on_press=self.ejecutar_auto_destruccion)
         self.contenedor.add_widget(btn_emergencia)
-        
+
         self.consola = Label(
             text=self.telemetria.sugerir_modelo_ia(),
             font_size='13sp',
-            color=(0, 0.8, 1, 1),
+            color=(0, 0.6, 1, 1),
             halign='left',
             valign='top',
             size_hint_y=None,
@@ -79,7 +79,7 @@ class GestorMasterSApp(App):
         )
         self.consola.bind(width=lambda *x: setattr(self.consola, 'text_size', (self.consola.width, None)))
         self.contenedor.add_widget(self.consola)
-        
+
         root.add_widget(self.contenedor)
         return root
 
@@ -88,35 +88,35 @@ class GestorMasterSApp(App):
         if not datos_contacto["nombre"]:
             self.consola.text = "[ALERTA] El campo 'Nombre Completo' es obligatorio."
             return
-            
+
         if self.telemetria.guardar_contacto_local(datos_contacto):
-            self.consola.text = f"[OK] Registro de '{datos_contacto['nombre']}' encriptado y guardado con exito."
+            self.consola.text = f"[OK] Registro de '{datos_contacto['nombre']}' encriptado y guardado con éxito."
             for input_w in self.campos.values():
                 input_w.text = ""
         else:
-            self.consola.text = "[ERROR] Error critico al escribir en la base de datos."
+            self.consola.text = "[ERROR] Error crítico al escribir en la base de datos."
 
     def mostrar_registros(self, instance):
         contactos = self.telemetria.cargar_contactos()
         if not contactos:
-            self.consola.text = "Base de datos vacia o inexistente."
+            self.consola.text = "Base de datos vacía o inexistente."
             return
-            
+
         salida = f"{self.telemetria.sugerir_modelo_ia()}\n\n=== REPORTE DE CONTACTOS SEGUROS ===\n"
         for i, c in enumerate(contactos, 1):
             salida += (
                 f"[{i}] {c.get('nombre').upper()}\n"
-                f"    Cel: {c.get('celular')} | Tel: {c.get('telefono')} | Fijo: {c.get('fijo')}\n"
+                f"    Tel: {c.get('celular')} | Tel: {c.get('telefono')} | Fijo: {c.get('fijo')}\n"
                 f"    Email: {c.get('correo')} | Mapa: {c.get('ubicacion')}\n"
-                f"    Direccion: {c.get('direccion')}\n"
+                f"    Dirección: {c.get('direccion')}\n"
                 f"    Nota: {c.get('nota')}\n"
-                f"-----------------------------------\n"
+                f"    ------------------------------------\n"
             )
         self.consola.text = salida
 
     def ejecutar_auto_destruccion(self, instance):
         if self.telemetria.destruir_base_datos():
-            self.consola.text = "!!! ALERTA PROTOCOLO CERO !!!\nToda la base de datos local ha sido destruida y sobrescrita con ceros binarios con éxito."
+            self.consola.text = "!!! ALERTA PROTOCOLO CERO !!!\nToda la base de datos local ha sido destruida y sobrescrita."
         else:
             self.consola.text = "[ERROR] No se pudo completar la limpieza forense."
 
