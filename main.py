@@ -5,7 +5,7 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.scrollview import ScrollView
 from kivy.core.window import Window
-from sistema import SistemaTelemetria
+from CODIGO.sistema import SistemaTelemetria
 
 Window.clearcolor = (0, 0, 0, 1)
 
