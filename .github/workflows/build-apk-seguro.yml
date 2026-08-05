@@ -1,6 +1,6 @@
 name: Build APK Manual
 on:
-  workflow_dispatch:
+  push :
 jobs:
   build:
     runs-on: ubuntu-22.04
@@ -9,14 +9,24 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-      - run: |
+      - name: Install Java & Buildozer
+        run: |
           sudo apt update
           sudo apt install -y openjdk-17-jdk zip unzip
-          pip install buildozer cython==0.29.33
-      - run: buildozer android debug
+          pip install --upgrade pip
+          pip install git+https://github.com/kivy/buildozer.git
+          pip install cython==0.29.33
+      - name: Fix Licenses
+        run: |
+          mkdir -p $HOME/.buildozer/android/platform/android-sdk/cmdline-tools
+          cp -r $ANDROID_HOME/* $HOME/.buildozer/android/platform/android-sdk/ || true
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.2" "platforms;android-33" || true
+      - name: Build
+        run: buildozer android debug
         env:
           ACCEPT_SDK_LICENSE_AGREEMENTS: "True"
       - uses: actions/upload-artifact@v4
         with:
-          name: GestorMasterS-APK
+          name: GestorMasterS-APK-FINAL
           path: bin/*.apk
