@@ -1,27 +1,37 @@
 [app]
 title = GestorMasterS
 package.name = gestormasters
-package.domain = con.masterscorpio.gestormasters
-source.dir = .
-source.include_exts = py,png,jpg,kv,atlas,json,ttf
-version = 1.0.0
+package.domain = org.scorpiomaster
 
-requirements = python3,kivy==2.3.1,kivymd==1.2.0,pillow,cython
+source.dir =.
+source.include_exts = py,png,jpg,kv,atlas,json,txt,db
+source.include_patterns = main.py, CODIGO/*.py, BASE_DE_DATOS/*, ARCHIVOS_GENERADOS/*, RESPALDOS/*
+source.exclude_dirs = bin,.buildozer,.git,.github, downloads, go, storage, Real-Time-Telemetry-Standard, phoneinfoga
+source.exclude_patterns = phoneinfoga*, *.tar.gz, modelfile, Modelfile
+
+version = 2.0
+version.regex = __version__ = ['"]([^'"]*)['"]
+version.filename = main.py
+
+requirements = python3,kivy==2.3.0,kivymd==1.2.0
 
 orientation = portrait
 fullscreen = 0
 
-android.permissions = INTERNET
-android.archs = armeabi-v7a, arm64-v8a
-android.api = 33
-android.minapi = 24
-android.ndk = 27c
-android.build_tools_version = 34.0.0
-android.accept_sdk_license_agreement = True
-android.enable_androidx = True
-p4a.bootstrap = sdl2
-icon.filename = icon.png
-
 [buildozer]
 log_level = 2
 warn_on_root = 1
+
+[app:android]
+p4a.branch = master
+p4a.bootstrap = sdl2
+p4a.port = 8000
+
+android.api = 33
+android.minapi = 24
+android.sdk = 33
+android.ndk = 25b
+android.archs = arm64-v8a
+android.accept_sdk_license_agreements = True
+
+# OFFGRID - Sin
