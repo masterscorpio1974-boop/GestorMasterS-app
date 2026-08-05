@@ -6,7 +6,7 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,json,ttf
 version = 1.3.0
 
-# VERSIONES COINCIDENTES SIN ERRORES
+# VERSIONES COINCIDENTES EXACTAS
 requirements = python3==3.11.9,kivy==2.3.1,kivymd==1.2.0,Pillow,pyjnius,plyer,requests,urllib3,charset-normalizer,idna,certifi
 
 orientation = portrait
