@@ -1,6 +1,7 @@
 name: Build APK Manual
 on:
-  push :
+  workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-22.04
@@ -19,8 +20,8 @@ jobs:
       - name: Fix Licenses
         run: |
           mkdir -p $HOME/.buildozer/android/platform/android-sdk/cmdline-tools
-          cp -r $ANDROID_HOME/* $HOME/.buildozer/android/platform/android-sdk/ || true
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          cp -r $ANDROID_HOME/* $HOME/.buildozer/android/platform/android-sdk/ 2>/dev/null || true
+          (yes || true) | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null 2>&1 || true
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.2" "platforms;android-33" || true
       - name: Build
         run: buildozer android debug
