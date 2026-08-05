@@ -1,76 +1,44 @@
 name: Compile GestorMasterS DEFINITIVO AZUL
-run-name: Construyendo ${{ github.actor }} · GestorMasterS
-on:
-  workflow_dispatch
 
-env:
-  ACTIONS_ALLOW_UNSECURE_NODE_VERSION: true
+on:
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-22.04
-    env:
-      ANDROID_SDK_LICENSE_ACCEPTED: true
-      CI: true
-      BUILDOZER_ANDROID_SDK_ACCEPT_LICENSE: 1
-      PIP_RETRIES: 10
-      PIP_TIMEOUT: 120
-      PFA_DOWNLOAD_RETRIES: 10
     steps:
-      - name: Obtener código del repositorio
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Instalar Python versión exacta
-        uses: actions/setup-python@v5
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.11.9'
+          python-version: '3.11'
 
-      - name: Instalar Java 17
+      - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Instalar paquetes del sistema
+      - name: Install dependencies
         run: |
           sudo apt update -y
-          sudo apt full-upgrade -y
-          sudo apt install -y unzip zip libffi-dev libssl-dev autoconf automake libtool pkg-config wget curl
-          pip install --upgrade pip setuptools wheel
-          pip install buildozer==1.5.0 cython==0.29.36 psutil
+          sudo apt install -y unzip zip libffi-dev libssl-dev autoconf automake libtool pkg-config zlib1g-dev libltdl-dev python3-dev
+          pip install --upgrade pip
+          pip install buildozer cython==0.29.36
 
-      - name: Aceptar todas las licencias SDK
+      - name: Clean old cache
         run: |
-          mkdir -p ~/.android
-          touch ~/.android/repositories.cfg
-          yes | sdkmanager --licenses || true
+          rm -rf.buildozer
+          rm -rf bin
+          rm -rf __pycache__
+          rm -rf bin/* || true
 
-      - name: Borrar datos de ejecuciones anteriores
+      - name: Build APK
         run: |
-          rm -rf .buildozer bin __pycache__ *.pyc || true
+          yes | buildozer android debug
 
-      - name: Configurar espejos de descarga y reintentos
-        run: |
-          echo "export PIP_INDEX_URL=https://pypi.org/simple" >> $GITHUB_ENV
-          echo "export PIP_EXTRA_INDEX_URL=https://pypi.python.org/simple" >> $GITHUB_ENV
-
-      - name: Ejecutar compilación con reintentos
-        run: |
-          for intento in {1..5}; do
-            echo "Intento de compilación $intento de 5"
-            buildozer android debug --no-warmup --verbose
-            if [ $? -eq 0 ]; then
-              echo "✅ Compilación exitosa en el intento $intento"
-              exit 0
-            fi
-            echo "⚠️ Falló el intento $intento, esperando 15 segundos para reintentar..."
-            rm -rf .buildozer/android/packages .buildozer/android/downloads
-            sleep 15
-          done
-          echo "❌ Fallaron todos los intentos"
-          exit 1
-
-      - name: Subir el archivo APK final
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: GestorMasterS-APK-AZUL-CRISTAL
