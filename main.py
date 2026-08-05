@@ -1,12 +1,19 @@
-import os, shutil, sqlite3
+import os, shutil, sqlite3, base64
 from datetime import datetime
 from kivymd.app import MDApp
 from kivy.lang import Builder
 from kivy.uix.scrollview import ScrollView
 from kivy.utils import platform
 
+# --- CIFRADO AES-256 REAL OFFLINE ---
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+import secrets
+
+CLAVE_MAESTRA = "MASTER-S-2026-Gomez-SLP" # Cambia esto, es tu password privado
+
 def get_base_dir():
-    # En Android usa la carpeta privada donde SI deja guardar
     if platform == 'android':
         try:
             from android.storage import app_storage_path
@@ -26,6 +33,30 @@ def get_paths():
     os.makedirs(GEN_DIR, exist_ok=True)
     return DB_DIR, RESP_DIR, GEN_DIR
 
+def get_key():
+    # Deriva clave AES-256 de tu password + salt fijo local
+    salt = b'MASTER_S_SALT_16B' # 16 bytes fijos, 100% offline
+    kdf = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=salt, iterations=200000)
+    return kdf.derive(CLAVE_MAESTRA.encode())
+
+KEY = get_key()
+aesgcm = AESGCM(KEY)
+
+def encrypt(text: str) -> str:
+    if not text: return ""
+    nonce = secrets.token_bytes(12)
+    ct = aesgcm.encrypt(nonce, text.encode('utf-8'), None)
+    return base64.b64encode(nonce + ct).decode()
+
+def decrypt(token: str) -> str:
+    try:
+        if not token: return ""
+        data = base64.b64decode(token.encode())
+        nonce, ct = data[:12], data[12:]
+        return aesgcm.decrypt(nonce, ct, None).decode('utf-8')
+    except:
+        return "[ERROR DESCIFRADO]"
+
 def init_db():
     DB_DIR, _, _ = get_paths()
     con=sqlite3.connect(os.path.join(DB_DIR,"datos.db"))
@@ -40,7 +71,8 @@ def add_cliente(d):
     con=sqlite3.connect(os.path.join(DB_DIR,"datos.db"))
     fecha=datetime.now().strftime("%Y-%m-%d %H:%M")
     con.execute("INSERT INTO clientes(nombre,telefono,direccion,correo,ubicacion,otros,fecha) VALUES (?,?,?,?,?,?,?)",
-                (d['nombre'],d['telefono'],d['direccion'],d['correo'],d['ubicacion'],d['otros'],fecha))
+                (encrypt(d['nombre']),encrypt(d['telefono']),encrypt(d['direccion']),
+                 encrypt(d['correo']),encrypt(d['ubicacion']),encrypt(d['otros']),fecha))
     con.commit(); con.close()
 
 def get_clientes():
@@ -48,8 +80,12 @@ def get_clientes():
     con=sqlite3.connect(os.path.join(DB_DIR,"datos.db"))
     cur=con.cursor()
     cur.execute("SELECT nombre,telefono,direccion,correo,ubicacion,otros,fecha FROM clientes ORDER BY id DESC")
-    data=cur.fetchall(); con.close()
-    return data
+    rows=cur.fetchall(); con.close()
+    # Desencripta al leer
+    dec=[]
+    for n,t,di,c,u,o,f in rows:
+        dec.append((decrypt(n),decrypt(t),decrypt(di),decrypt(c),decrypt(u),decrypt(o),f))
+    return dec
 
 def hacer_respaldo():
     DB_DIR, RESP_DIR, _ = get_paths()
@@ -61,7 +97,7 @@ def hacer_respaldo():
 def generar_informe():
     _, _, GEN_DIR = get_paths()
     clientes=get_clientes()
-    txt=f"INFORME OFFGRID GestorMasterS - {datetime.now()}\nTotal clientes:{len(clientes)}\n{'='*40}\n\n"
+    txt=f"INFORME OFFGRID GestorMasterS AES-256 - {datetime.now()}\nTotal clientes:{len(clientes)}\n{'='*40}\n\n"
     for n,t,di,c,u,o,f in clientes:
         txt+=f"1.Nombre: {n}\n2.Telefono: {t}\n3.Direccion: {di}\n4.Correo: {c}\n5.Ubicacion: {u}\n6.Otros: {o}\nFecha:{f}\n{'-'*30}\n"
     ruta=os.path.join(GEN_DIR,f"Informe_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt")
@@ -75,7 +111,7 @@ Screen:
         padding:10
         spacing:8
         MDLabel:
-            text: "GestorMasterS OFFGRID - YA GUARDA"
+            text: "GestorMasterS OFFGRID - AES-256 ACTIVO"
             halign: "center"
             font_style: "H6"
             size_hint_y: None
@@ -145,7 +181,7 @@ class GestorApp(MDApp):
         t=""
         for n,tel,di,c,u,o,f in get_clientes():
             t+=f"[{f}] {n} | {tel} | {u}\n"
-        self.root.ids.lista.text=t or "Vacio - OFFGRID"
+        self.root.ids.lista.text=t or "Vacio - AES-256"
     def limpiar(self):
         for i in ['nombre','telefono','direccion','correo','ubicacion','otros']:
             self.root.ids[i].text=""
