@@ -1,7 +1,6 @@
 name: Build APK Manual
 on:
   workflow_dispatch:
-
 jobs:
   build:
     runs-on: ubuntu-22.04
@@ -15,10 +14,20 @@ jobs:
           sudo apt update
           sudo apt install -y openjdk-17-jdk zip unzip
           pip install buildozer cython==0.29.33
+      - name: Fix Licenses A LA FUERZA
+        run: |
+          mkdir -p ~/.buildozer/android/platform/android-sdk/cmdline-tools
+          cd /tmp
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          unzip -q commandlinetools-linux-11076708_latest.zip
+          mkdir -p ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest
+          mv cmdline-tools/* ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest/
+          export ANDROID_SDK_ROOT=$HOME/.buildozer/android/platform/android-sdk
+          export PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin
+          yes | sdkmanager --licenses
+          yes | sdkmanager "platforms;android-33" "build-tools;33.0.2" "build-tools;37.0.0" "platform-tools"
       - name: Build
         run: buildozer android debug
-        env:
-          ACCEPT_SDK_LICENSE_AGREEMENTS: "True"
       - uses: actions/upload-artifact@v4
         with:
           name: GestorMasterS-APK-FINAL
