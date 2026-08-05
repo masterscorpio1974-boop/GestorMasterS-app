@@ -6,7 +6,7 @@ package.domain = org.scorpiomaster
 source.dir =.
 source.include_exts = py,png,jpg,kv,atlas,json,txt,db
 source.include_patterns = main.py, CODIGO/*.py, BASE_DE_DATOS/*, ARCHIVOS_GENERADOS/*, RESPALDOS/*
-source.exclude_dirs = bin,.buildozer,.git,.github, downloads, go, storage, Real-Time-Telemetry-Standard, phoneinfoga
+source.exclude_dirs = bin,.buildozer,.git,.github,downloads,go,storage,Real-Time-Telemetry-Standard,phoneinfoga
 source.exclude_patterns = phoneinfoga*, *.tar.gz, modelfile, Modelfile
 
 version = 2.0
@@ -34,4 +34,9 @@ android.ndk = 25b
 android.archs = arm64-v8a
 android.accept_sdk_license_agreements = True
 
-# OFFGRID - Sin
+# OFFGRID - Sin internet
+android.permissions = WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE
+android.features = android.hardware.touchscreen
+
+icon.filename = %(source.dir)s/icon.png
+presplash.filename = %(source.dir)s/icon.png
