@@ -5,13 +5,12 @@ package.domain = org.scorpiomaster
 
 source.dir =.
 source.include_exts = py,png,jpg,kv,atlas,json,txt,db
-source.include_patterns = main.py, CODIGO/*.py, BASE_DE_DATOS/*, ARCHIVOS_GENERADOS/*, RESPALDOS/*
+source.include_patterns = main.py,CODIGO/*.py,BASE_DE_DATOS/*,ARCHIVOS_GENERADOS/*,RESPALDOS/*
 source.exclude_dirs = bin,.buildozer,.git,.github,downloads,go,storage,Real-Time-Telemetry-Standard,phoneinfoga
-source.exclude_patterns = phoneinfoga*, *.tar.gz, modelfile, Modelfile
+source.exclude_patterns = phoneinfoga*,*.tar.gz,modelfile,Modelfile
 
 version = 2.0
-requirements = python3,kivy==2.3.0,kivymd==1.2.0
-
+requirements = python3,kivy==2.3.0,kivymd==1.2.0,plyer,androidstorage4kivy
 orientation = portrait
 fullscreen = 0
 
@@ -31,9 +30,9 @@ android.ndk = 25b
 android.archs = arm64-v8a
 android.accept_sdk_license_agreements = True
 
-# OFFGRID - Sin internet
-android.permissions = WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE
+android.permissions = WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE, INTERNET
 android.features = android.hardware.touchscreen
+android.allow_backup = True
 
 icon.filename = %(source.dir)s/icon.png
 presplash.filename = %(source.dir)s/icon.png
