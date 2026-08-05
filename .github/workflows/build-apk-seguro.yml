@@ -6,35 +6,43 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - name: Obtener codigo del repositorio
+        uses: actions/checkout@v4
 
-      - name: Python 3.11.9 IGUAL AL SPEC
+      - name: Usar Python 3.11.9 IGUAL AL SPEC
         uses: actions/setup-python@v5
         with:
           python-version: '3.11.9'
 
-      - name: Java 17 Requerido
+      - name: Instalar Java 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Instalar todo lo necesario
+      - name: Instalar paquetes del sistema
         run: |
           sudo apt update -y
           sudo apt install -y zip unzip build-essential libffi-dev libssl-dev autoconf automake libtool
           pip install --upgrade pip setuptools wheel
           pip install buildozer==1.5.0 cython==0.29.36
 
-      - name: Limpiar basura anterior
+      - name: Limpiar basura de corridas viejas
         run: rm -rf .buildozer bin __pycache__
 
-      - name: Compilar YA
+      - name: Aceptar licencias e instalar SDK exacto
+        run: |
+          mkdir -p ~/.android
+          touch ~/.android/repositories.cfg
+          yes | sdkmanager --licenses || true
+          yes | sdkmanager "platforms;android-33" "build-tools;34.0.0" "ndk;27c"
+
+      - name: Compilar APK YA
         run: buildozer android debug --no-warmup --verbose
 
       - name: Subir APK listo
         uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: GestorMasterS-APK-LIBRE-DE-ERRORES
+          name: GestorMasterS-FINAL
           path: bin/*.apk
