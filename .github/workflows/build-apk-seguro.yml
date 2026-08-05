@@ -1,34 +1,40 @@
-name: Build APK Manual
+name: Build APK DEFINITIVO
 on:
   workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+
+      - name: Python 3.11.9 IGUAL AL SPEC
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
-      - name: Install Deps
-        run: |
-          sudo apt update
-          sudo apt install -y openjdk-17-jdk zip unzip
-          pip install buildozer cython==0.29.33
-      - name: Fix Licenses A LA FUERZA
-        run: |
-          mkdir -p ~/.buildozer/android/platform/android-sdk/cmdline-tools
-          cd /tmp
-          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
-          unzip -q commandlinetools-linux-11076708_latest.zip
-          mkdir -p ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest
-          mv cmdline-tools/* ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest/
-          export ANDROID_SDK_ROOT=$HOME/.buildozer/android/platform/android-sdk
-          export PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin
-          yes | sdkmanager --licenses
-          yes | sdkmanager "platforms;android-33" "build-tools;33.0.2" "build-tools;37.0.0" "platform-tools"
-      - name: Build
-        run: buildozer android debug
-      - uses: actions/upload-artifact@v4
+          python-version: '3.11.9'
+
+      - name: Java 17 Requerido
+        uses: actions/setup-java@v4
         with:
-          name: GestorMasterS-APK-FINAL
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Instalar todo lo necesario
+        run: |
+          sudo apt update -y
+          sudo apt install -y zip unzip build-essential libffi-dev libssl-dev autoconf automake libtool
+          pip install --upgrade pip setuptools wheel
+          pip install buildozer==1.5.0 cython==0.29.36
+
+      - name: Limpiar basura anterior
+        run: rm -rf .buildozer bin __pycache__
+
+      - name: Compilar YA
+        run: buildozer android debug --no-warmup --verbose
+
+      - name: Subir APK listo
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: GestorMasterS-APK-LIBRE-DE-ERRORES
           path: bin/*.apk
