@@ -1,33 +1,17 @@
 [app]
-title = GestorMasterS
+title = Gestor Master S
 package.name = gestormasters
-package.domain = org.scorpiomaster
+package.domain = com.masters.gestor
 source.dir =.
-source.include_exts = py,png,jpg,kv,atlas,json,txt,db
-source.include_patterns = main.py,CODIGO/*.py,BASE_DE_DATOS/*,ARCHIVOS_GENERADOS/*,RESPALDOS/*
-source.exclude_dirs = bin,.buildozer,.git,.github,downloads,go,storage,Real-Time-Telemetry-Standard,phoneinfoga
-source.exclude_patterns = phoneinfoga*,*.tar.gz,modelfile,Modelfile
-version = 2.0
-requirements = hostpython3==3.11.9,python3==3.11.9,kivy==2.3.0,kivymd==1.2.0,plyer,androidstorage4kivy
+source.include_exts = py,png,jpg,kv,atlas
+version = 1.2
+requirements = python3,kivy==2.3.0,kivymd==1.1.1,pillow
 orientation = portrait
+android.api = 33
+android.minapi = 21
+android.permissions = WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
+android.accept_sdk_license_agreement = True
 fullscreen = 0
 
 [buildozer]
 log_level = 2
-warn_on_root = 1
-
-[app:android]
-p4a.branch = master
-p4a.bootstrap = sdl2
-p4a.port = 8000
-android.api = 33
-android.minapi = 24
-android.sdk = 33
-android.ndk = 25b
-android.archs = arm64-v8a
-android.accept_sdk_license_agreements = True
-android.permissions = WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
-android.features = android.hardware.touchscreen
-android.allow_backup = True
-icon.filename = %(source.dir)s/icon.png
-presplash.filename = %(source.dir)s/icon.png
