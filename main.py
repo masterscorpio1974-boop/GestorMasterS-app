@@ -3,19 +3,32 @@ from datetime import datetime
 from kivymd.app import MDApp
 from kivy.lang import Builder
 from kivy.uix.scrollview import ScrollView
+from kivy.utils import platform
 
-# RUTA BASE FIJA OFFGRID
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_DIR = os.path.join(BASE_DIR, "BASE_DE_DATOS")
-RESP_DIR = os.path.join(BASE_DIR, "RESPALDOS")
-GEN_DIR = os.path.join(BASE_DIR, "ARCHIVOS_GENERADOS")
+def get_base_dir():
+    # En Android usa la carpeta privada donde SI deja guardar
+    if platform == 'android':
+        try:
+            from android.storage import app_storage_path
+            return app_storage_path()
+        except:
+            return MDApp.get_running_app().user_data_dir
+    else:
+        return os.path.dirname(os.path.abspath(__file__))
 
-def init_db():
+def get_paths():
+    BASE = get_base_dir()
+    DB_DIR = os.path.join(BASE, "BASE_DE_DATOS")
+    RESP_DIR = os.path.join(BASE, "RESPALDOS")
+    GEN_DIR = os.path.join(BASE, "ARCHIVOS_GENERADOS")
     os.makedirs(DB_DIR, exist_ok=True)
     os.makedirs(RESP_DIR, exist_ok=True)
     os.makedirs(GEN_DIR, exist_ok=True)
+    return DB_DIR, RESP_DIR, GEN_DIR
+
+def init_db():
+    DB_DIR, _, _ = get_paths()
     con=sqlite3.connect(os.path.join(DB_DIR,"datos.db"))
-    # Nueva tabla con los 6 campos separados OFFGRID
     con.execute("""CREATE TABLE IF NOT EXISTS clientes(
         id INTEGER PRIMARY KEY,
         nombre TEXT, telefono TEXT, direccion TEXT,
@@ -23,6 +36,7 @@ def init_db():
     con.commit(); con.close()
 
 def add_cliente(d):
+    DB_DIR, _, _ = get_paths()
     con=sqlite3.connect(os.path.join(DB_DIR,"datos.db"))
     fecha=datetime.now().strftime("%Y-%m-%d %H:%M")
     con.execute("INSERT INTO clientes(nombre,telefono,direccion,correo,ubicacion,otros,fecha) VALUES (?,?,?,?,?,?,?)",
@@ -30,6 +44,7 @@ def add_cliente(d):
     con.commit(); con.close()
 
 def get_clientes():
+    DB_DIR, _, _ = get_paths()
     con=sqlite3.connect(os.path.join(DB_DIR,"datos.db"))
     cur=con.cursor()
     cur.execute("SELECT nombre,telefono,direccion,correo,ubicacion,otros,fecha FROM clientes ORDER BY id DESC")
@@ -37,12 +52,14 @@ def get_clientes():
     return data
 
 def hacer_respaldo():
+    DB_DIR, RESP_DIR, _ = get_paths()
     o=os.path.join(DB_DIR,"datos.db")
     if os.path.exists(o):
         d=os.path.join(RESP_DIR,f"respaldo_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db")
         shutil.copy(o,d); return d
 
 def generar_informe():
+    _, _, GEN_DIR = get_paths()
     clientes=get_clientes()
     txt=f"INFORME OFFGRID GestorMasterS - {datetime.now()}\nTotal clientes:{len(clientes)}\n{'='*40}\n\n"
     for n,t,di,c,u,o,f in clientes:
@@ -58,7 +75,7 @@ Screen:
         padding:10
         spacing:8
         MDLabel:
-            text: "GestorMasterS OFFGRID"
+            text: "GestorMasterS OFFGRID - YA GUARDA"
             halign: "center"
             font_style: "H6"
             size_hint_y: None
@@ -136,7 +153,13 @@ class GestorApp(MDApp):
         datos={k:self.root.ids[k].text.strip() for k in ['nombre','telefono','direccion','correo','ubicacion','otros']}
         if not datos['nombre']: return
         add_cliente(datos); self.limpiar(); self.refresh()
-    def hacer_informe(self): generar_informe(); self.refresh()
-    def hacer_backup(self): hacer_respaldo(); self.refresh()
+    def hacer_informe(self):
+        r=generar_informe()
+        print(f"Informe en {r}")
+        self.refresh()
+    def hacer_backup(self):
+        r=hacer_respaldo()
+        print(f"Respaldo en {r}")
+        self.refresh()
 
 GestorApp().run()
