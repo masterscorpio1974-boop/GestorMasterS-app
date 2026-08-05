@@ -10,9 +10,6 @@ source.exclude_dirs = bin,.buildozer,.git,.github,downloads,go,storage,Real-Time
 source.exclude_patterns = phoneinfoga*, *.tar.gz, modelfile, Modelfile
 
 version = 2.0
-version.regex = __version__ = ['"]([^'"]*)['"]
-version.filename = main.py
-
 requirements = python3,kivy==2.3.0,kivymd==1.2.0
 
 orientation = portrait
