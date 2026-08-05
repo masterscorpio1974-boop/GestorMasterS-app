@@ -1,10 +1,8 @@
 import os, shutil, sqlite3, re
 from datetime import datetime
-# ── NUEVOS IMPORTS YA AGREGADOS ──
 from kivymd.app import MDApp
 from kivy.utils import platform
 from kivy.lang import Builder
-from kivy.uix.scrollview import ScrollView
 from kivy.metrics import dp
 
 # ==================== TUS RUTAS ORIGINALES ====================
@@ -31,35 +29,38 @@ def get_paths():
 # ==================== BASE DE DATOS ====================
 def init_db():
     DB_DIR, _, _ = get_paths()
-    con=sqlite3.connect(os.path.join(DB_DIR,"datos.db"))
+    con = sqlite3.connect(os.path.join(DB_DIR,"datos.db"))
     con.execute("""CREATE TABLE IF NOT EXISTS registros(
-        id INTEGER PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         tipo TEXT,
         contenido TEXT,
         categoria TEXT,
         fecha TEXT)""")
-    con.commit(); con.close()
+    con.commit()
+    con.close()
 
 def add_registro(tipo, contenido, categoria):
     DB_DIR, _, _ = get_paths()
-    con=sqlite3.connect(os.path.join(DB_DIR,"datos.db"))
-    fecha=datetime.now().strftime("%Y-%m-%d %H:%M")
-    con.execute("INSERT INTO registros(tipo,contenido,categoria,fecha) VALUES (?,?,?,?)",tipo, contenido,categoria, fecha)
-    con.commit(); con.close()
+    con = sqlite3.connect(os.path.join(DB_DIR,"datos.db"))
+    fecha = datetime.now().strftime("%Y-%m-%d %H:%M")
+    con.execute("INSERT INTO registros(tipo,contenido,categoria,fecha) VALUES (?,?,?,?)",
+                (tipo, contenido, categoria, fecha))
+    con.commit()
+    con.close()
 
 def get_registros():
     DB_DIR, _, _ = get_paths()
-    con=sqlite3.connect(os.path.join(DB_DIR,"datos.db"))
-    cur=con.cursor()
+    con = sqlite3.connect(os.path.join(DB_DIR,"datos.db"))
+    cur = con.cursor()
     cur.execute("SELECT tipo,contenido,categoria,fecha FROM registros ORDER BY id DESC")
-    data=cur.fetchall(); con.close()
+    data = cur.fetchall()
+    con.close()
     return data
 
 # ==================== LECTURA DE MEMORIA ARREGLADA ====================
 def get_ram_info():
     ram_gb = 0.0
     try:
-        # Primero por sistema Android nativo
         if platform == 'android':
             from jnius import autoclass
             ActivityManager = autoclass('android.app.ActivityManager')
@@ -69,11 +70,9 @@ def get_ram_info():
             am.getMemoryInfo(memInfo)
             ram_gb = round(memInfo.totalMem / (1024**3), 1)
         else:
-            # Si corre en PC
             import psutil
             ram_gb = round(psutil.virtual_memory().total / (1024**3), 1)
     except:
-        # Respaldo con tu metodo original
         try:
             if os.path.exists("/proc/meminfo"):
                 with open("/proc/meminfo") as f:
@@ -85,7 +84,7 @@ def get_ram_info():
         except:
             ram_gb = 4.0
 
-    # TU MISMA LOGICA DE RECOMENDACIONES
+    # TU LÓGICA DE RECOMENDACIONES
     if ram_gb < 2.5:
         sugerencia = "qwen2.5:0.5b (512MB) - Tu equipo tiene poca RAM"
     elif ram_gb < 4.5:
@@ -97,7 +96,7 @@ def get_ram_info():
 
     return f"{ram_gb:.1f} GB detectados", sugerencia
 
-# ==================== CATEGORIZACION ====================
+# ==================== CATEGORIZACIÓN ====================
 def ia_categorizar(texto):
     texto = texto.lower()
     if any(x in texto for x in ["cliente", "pagar", "cobrar", "venta", "dinero"]):
@@ -110,26 +109,36 @@ def ia_categorizar(texto):
         return "URGENTE"
     return "GENERAL"
 
-# ==================== RESPALDOS ====================
+# ==================== RESPALDOS E INFORMES ====================
 def hacer_respaldo():
     DB_DIR, RESP_DIR, _ = get_paths()
-    if os.path.exists(os.path.join(DB_DIR,"datos.db")):
-        d=os.path.join(RESP_DIR,f"respaldo_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db")
-        shutil.copy(os.path.join(DB_DIR,"datos.db"),d); return d
+    ruta_db = os.path.join(DB_DIR,"datos.db")
+    if os.path.exists(ruta_db):
+        nombre = f"respaldo_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
+        ruta_nueva = os.path.join(RESP_DIR, nombre)
+        shutil.copy2(ruta_db, ruta_nueva)
+        return ruta_nueva
+    return None
 
 def generar_informe():
     _, _, GEN_DIR = get_paths()
-    regs=get_registros()
+    regs = get_registros()
     ram, modelo = get_ram_info()
-    txt=f"INFORME GestorMasterS - {datetime.now().strftime('%d/%m/%Y %H:%M')}\n{ram}\nModelo recomendado: {modelo}\n---\n"
-    for r in regs: txt += f"{r[3]} | {r[0]} | {r[2]}\n{r[1]}\n---\n"
-    arch=os.path.join(GEN_DIR,f"informe_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt")
-    with open(arch,"w",encoding="utf-8")as f: f.write(txt)
-    return arch
+    contenido = f"""INFORME GestorMasterS
+Generado el: {datetime.now().strftime('%d/%m/%Y %H:%M')}
+{ram}
+Modelo recomendado: {modelo}
+----------------------------------------
+"""
+    for r in regs:
+        contenido += f"📅 {r[3]} | 📂 {r[2]}\n{r[0]}: {r[1]}\n----------------------------------------\n"
+    ruta_archivo = os.path.join(GEN_DIR, f"informe_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt")
+    with open(ruta_archivo, "w", encoding="utf-8") as f:
+        f.write(contenido)
+    return ruta_archivo
 
-# ==================== INICIO DE APP ====================
+# ==================== INICIO ====================
 if __name__ == "__main__":
     init_db()
-    # Aqui se agregara tu interfaz completa cuando quieras
-    print("GestorMasterS iniciado correctamente")
+    print("✅ GestorMasterS cargado correctamente")
     print(get_ram_info())
