@@ -10,19 +10,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-      - name: Install Java & Buildozer
+      - name: Install Deps
         run: |
           sudo apt update
           sudo apt install -y openjdk-17-jdk zip unzip
-          pip install --upgrade pip
-          pip install git+https://github.com/kivy/buildozer.git
-          pip install cython==0.29.33
-      - name: Fix Licenses
-        run: |
-          mkdir -p $HOME/.buildozer/android/platform/android-sdk/cmdline-tools
-          cp -r $ANDROID_HOME/* $HOME/.buildozer/android/platform/android-sdk/ 2>/dev/null || true
-          (yes || true) | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null 2>&1 || true
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.2" "platforms;android-33" || true
+          pip install buildozer cython==0.29.33
       - name: Build
         run: buildozer android debug
         env:
