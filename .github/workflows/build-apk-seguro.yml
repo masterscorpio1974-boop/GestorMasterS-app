@@ -32,8 +32,15 @@ jobs:
           pip install --user Cython==0.29.36
           pip install --user buildozer
 
-      - name: Limpiar caché vieja
-        run: rm -rf .buildozer bin __pycache__
+      - name: Restaurar caché
+        uses: actions/cache@v4
+        with:
+          path: |
+            .buildozer
+            bin
+          key: buildozer-cache-${{ github.sha }}
+          restore-keys: |
+            buildozer-cache-
 
       - name: Compilar APK
         run: yes | buildozer android debug
