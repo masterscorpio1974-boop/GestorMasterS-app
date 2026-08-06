@@ -1,4 +1,5 @@
 name: Build APK DEFINITIVO
+
 on:
   workflow_dispatch:
 
@@ -6,43 +7,65 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-      - name: Obtener codigo del repositorio
+      - name: 📥 Obtener código del repositorio
         uses: actions/checkout@v4
 
-      - name: Usar Python 3.11.9 IGUAL AL SPEC
+      - name: 🐍 Instalar Python 3.11.9
         uses: actions/setup-python@v5
         with:
           python-version: '3.11.9'
 
-      - name: Instalar Java 17
-        uses: actions/setup-java@v4
+      - name: ☕ Instalar Java 17
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Instalar paquetes del sistema
+      - name: 📦 Instalar paquetes del sistema
         run: |
-          sudo apt update -y
-          sudo apt install -y zip unzip build-essential libffi-dev libssl-dev autoconf automake libtool
-          pip install --upgrade pip setuptools wheel
-          pip install buildozer==1.5.0 cython==0.29.36
+          sudo apt-get update -y
+          sudo apt-get install -y zip unzip build-essential libffi-dev \
+            libssl-dev autoconf automake libtool pkg-config zlib1g-dev
 
-      - name: Limpiar basura de corridas viejas
-        run: rm -rf .buildozer bin __pycache__
-
-      - name: Aceptar licencias e instalar SDK exacto
+      - name: 📚 Instalar Android SDK Command-Line Tools
         run: |
-          mkdir -p ~/.android
-          touch ~/.android/repositories.cfg
+          mkdir -p ~/Android/cmdline-tools
+          cd ~/Android/cmdline-tools
+          SDK_URL="https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip"
+          wget -q $SDK_URL -O cmdline.zip
+          unzip -q cmdline.zip
+          mv cmdline-tools latest
+          rm cmdline.zip
+          
+          echo "ANDROID_HOME=$HOME/Android" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=$HOME/Android" >> $GITHUB_ENV
+          echo "PATH=$HOME/Android/cmdline-tools/latest/bin:$HOME/Android/platform-tools:$PATH" >> $GITHUB_ENV
+
+      - name: ✅ Aceptar licencias e instalar componentes
+        run: |
           yes | sdkmanager --licenses || true
-          yes | sdkmanager "platforms;android-33" "build-tools;34.0.0" "ndk;27c"
+          sdkmanager "platforms;android-33" "build-tools;34.0.0" "ndk;27c"
+        env:
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
+          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
 
-      - name: Compilar APK YA
-        run: buildozer android debug --no-warmup --verbose
+      - name: 🛠️ Instalar Buildozer
+        run: |
+          python -m pip install --upgrade pip
+          pip install --user Cython==0.29.36 virtualenv
+          pip install --user buildozer
+          echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
 
-      - name: Subir APK listo
+      - name: 🔨 Compilar APK
+        run: |
+          buildozer android debug --verbose
+        env:
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
+          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
+
+      - name: 📤 Subir APK generado
         uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: GestorMasterS-FINAL
+          name: GestorMasterS-APK-FINAL
           path: bin/*.apk
