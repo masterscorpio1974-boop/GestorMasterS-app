@@ -1,16 +1,18 @@
 name: Build APK DEFINITIVO
+
 on:
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-22.04
+    
     steps:
       - name: Obtener código
         uses: actions/checkout@v4
 
       - name: Instalar Python 3.11
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -23,31 +25,41 @@ jobs:
       - name: Instalar dependencias del sistema
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y zip unzip build-essential libffi-dev libssl-dev autoconf automake libtool
-          sudo apt-get install -y pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo-dev cmake
+          sudo apt-get install -y \
+            zip unzip build-essential \
+            libffi-dev libssl-dev \
+            autoconf automake libtool \
+            pkg-config zlib1g-dev \
+            libncurses5-dev libncursesw5-dev libtinfo6 \
+            cmake libsqlite3-dev
 
-      - name: Instalar Buildozer
+      - name: Instalar Buildozer y Cython
         run: |
           python -m pip install --upgrade pip
-          pip install --user Cython==0.29.36
-          pip install --user buildozer
+          pip install "Cython==0.29.36" buildozer
 
-      - name: Restaurar caché
+      - name: Restaurar caché de Buildozer
         uses: actions/cache@v4
         with:
           path: |
             .buildozer
-            bin
-          key: buildozer-cache-${{ github.sha }}
+            ~/.buildozer
+          key: buildozer-3.11-${{ hashFiles('buildozer.spec') }}
           restore-keys: |
-            buildozer-cache-
+            buildozer-3.11-
+
+      - name: Limpiar builds viejos
+        run: |
+          buildozer android clean || true
+          rm -rf .buildozer/android/platform/build-*/build/other_builds/python3 || true
 
       - name: Compilar APK
-        run: yes | buildozer android debug
+        run: |
+          yes | buildozer android debug --verbose
 
       - name: Subir APK
         uses: actions/upload-artifact@v4
-        if: success()
         with:
-          name: GestorMasterS-APK-FINAL
+          name: GestorMasterS-APK
           path: bin/*.apk
+          if-no-files-found: error
