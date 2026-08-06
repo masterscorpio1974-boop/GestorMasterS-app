@@ -29,7 +29,7 @@ jobs:
         run: |
           mkdir -p ~/Android
           cd ~/Android
-          wget -q "https://dl.google.com/android/repository/commandlinetools-linux-12479018_latest.zip" -O tools.zip
+          wget -q "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip" -O tools.zip
           unzip tools.zip
           mkdir -p cmdline-tools
           mv cmdline-tools cmdline-tools/latest
