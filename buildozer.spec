@@ -1,26 +1,35 @@
 [app]
 title = GestorMasterS
 package.name = gestormasters
-package.domain = org.scorpionmaster
+package.domain = org.test
 source.dir = .
-source.include_exts = py,png,jpg,kv,atlas,json,ttf
-version = 1.3.0
+source.include_exts = py,png,jpg,kv,atlas
+version = 1.0
 
-requirements = python3==3.11.9,kivy==2.3.1,kivymd==1.2.0,Pillow,pyjnius,androidlib,requests,urllib3
+requirements = python3,kivy
 
 orientation = portrait
-fullscreen = 0
-android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE,MANAGE_EXTERNAL_STORAGE
-android.api = 33
-android.minapi = 24
-android.ndk = 27c
-android.buildtools = 34.0.0
-android.accept_sdk_license_agreement = True
-android.enable_androidx = True
-android.use_aapt2 = True
-android.archs = arm64-v8a
+oslog.python.level = INFO
+oslog.android.level = INFO
 
-[buildozer]
+python3 = python3.11
+hostpython3 = python3.11
+
+android.ndk = 25b
+android.sdk = 24
+android.api = 33
+android.apptheme = @android:style/Theme.Holo.Light
+android.arch = arm64-v8a,armeabi-v7a
+android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
+android.allow_backup = True
+android.minapi = 21
+android.wakelock = False
+android.fullscreen = False
+android.use_aapt2 = True
+android.buildtools = 33.0.0
+
+presplash.filename = 
+icon.filename = 
+
 log_level = 2
-warn_on_root = 0
- 
+warn_on_root_build = False
