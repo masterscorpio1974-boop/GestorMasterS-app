@@ -7,7 +7,8 @@ jobs:
     runs-on: ubuntu-22.04
     env:
       PYTHON_VERSION: "3.10"
-      BUILDOZER_VERSION: "2.0.0"
+      # ✅ VERSIONES REALES Y EXISTENTES
+      BUILDOZER_VERSION: "1.5.0"
       CYTHON_VERSION: "0.29.37"
       KIVY_VERSION: "2.3.0"
       ANDROID_NDK_VERSION: "25b"
@@ -15,33 +16,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Instalar dependencias del sistema
+      - name: INSTALACION LIMPIA DEL SISTEMA
         run: |
-          sudo apt update -y
-          sudo apt install -y git zip unzip openjdk-17-jdk autoconf libtool pkg-config \
-                               zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake \
-                               libffi-dev libssl-dev libsqlite3-dev libbz2-dev liblzma-dev \
-                               libncurses5-dev libreadline-dev libgdbm-dev libnss3-dev \
-                               tk-dev
+          sudo apt clean && sudo apt update -y
+          sudo apt install -y --no-install-recommends git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev libsqlite3-dev libbz2-dev liblzma-dev libreadline-dev libgdbm-dev libnss3-dev tk-dev
 
-      - name: Configurar Python
+      - name: Python LIMPIO
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Instalar herramientas
+      - name: PAQUETES NUEVOS, VERSIONES REALES, SIN CACHE
         run: |
-          python -m pip install --upgrade pip setuptools wheel
-          pip install cython==${{ env.CYTHON_VERSION }} buildozer==${{ env.BUILDOZER_VERSION }} kivy==${{ env.KIVY_VERSION }}
+          python -m pip install --upgrade pip setuptools wheel --no-cache-dir
+          pip install cython==${{ env.CYTHON_VERSION }} buildozer==${{ env.BUILDOZER_VERSION }} kivy==${{ env.KIVY_VERSION }} --no-cache-dir
 
-      - name: Aceptar licencias Android SDK
+      - name: LICENCIAS DESDE CERO
         run: |
+          rm -rf ~/.android
           mkdir -p ~/.android/sdk/licenses
           echo "24333f8a63b6825ea9c5514f834c281a93b48ca2" > ~/.android/sdk/licenses/android-sdk-license
           echo "84831b9409646a918e30573bab4c9c9096d8a34d" > ~/.android/sdk/licenses/android-sdk-preview-license
 
-      - name: Compilar APK
-        run: buildozer android debug
+      - name: COMPILAR TODO NUEVO
+        run: buildozer android debug --clean
         env:
           BUILDOZER_ANDROID_NDK: ${{ env.ANDROID_NDK_VERSION }}
           USE_SDL2: "1"
@@ -49,7 +47,7 @@ jobs:
           USE_SDL2_TTF: "1"
           USE_SDL2_IMAGE: "1"
 
-      - name: Subir APK final
+      - name: SUBIR APK
         uses: actions/upload-artifact@v4
         with:
           name: GestorMaster_SIN_GOOGLE
