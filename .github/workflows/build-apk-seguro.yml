@@ -5,47 +5,46 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v4
 
-      # 1. CACHÉ DE BUILDOZER Y ANDROID SDK/NDK
-      - name: Cache Buildozer packages
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.buildozer
-            .buildozer
-          key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
-          restore-keys: |
-            ${{ runner.os }}-buildozer-
-
-      # 2. FIJAR EXACTAMENTE Python 3.10
-      - name: Python EXACTO 3.10
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.9"
 
-      # 3. Instalar herramientas sistema
-      - name: Dependencias
+      # Java 17 era indispensable en ese flujo clásico
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Install dependencies
         run: |
           sudo apt update -y
-          sudo apt install -y --no-install-recommends git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libsqlite3-dev tk-dev libgdbm-compat-dev libc6-dev libbz2-dev
+          sudo apt install -y --no-install-recommends git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libsqlite3-dev tk-dev libgdbm-compat-dev libc6-dev libbz2-dev
 
-      # 4. INSTALAR VERSIONES REQUERIDAS
-      - name: Versiones EXACTAS iguales al spec
+      # Forzamos las herramientas clásicas estables que no piden licencias trabadas
+      - name: Install Buildozer and Cython
         run: |
           python -m pip install --upgrade pip setuptools wheel
-          pip install cython==0.29.37 buildozer==1.5.0 kivy==2.3.0
+          pip install cython==0.29.33 buildozer==1.2.0 kivy==2.1.0
 
-      # 5. Compilación Limpia directa
-      - name: Compilar Limpio
+      - name: Clean old cache
         run: |
-          buildozer android debug --clean
+          rm -rf ~/.buildozer
+          rm -rf .buildozer
 
-      # 6. Subir APK resultante
-      - name: Subir APK
+      # Compilación directa como lo hacía el flujo #68
+      - name: Build APK
+        run: |
+          buildozer android debug
+
+      # Sube el archivo binario generado
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: GestorMaster_SIN_GOOGLE
