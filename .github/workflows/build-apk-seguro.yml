@@ -21,16 +21,19 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildozer-
 
-      # # 2. LO PRIMERO: ACEPTAR LICENCIAS (Mejorado de forma automática)
-      - name: Licencias ya aceptadas
+      # # 2. ACEPTAR LICENCIAS Y CREAR SYMLINK PREVIO
+      - name: Preparar Licencias y Carpetas
         run: |
           rm -rf ~/.android
           mkdir -p ~/.android/sdk/licenses
           echo "24333f8a63b6825ea9c5514f834c201a934d4ca2" > ~/.android/sdk/licenses/android-sdk-license
           echo "84831b9409646a918e30573bab4c9c9134d5a34d" > ~/.android/sdk/licenses/android-sdk-preview-license
-          yes | sdkmanager --licenses || true
+          
+          # Forzar la creación de la ruta interna donde Buildozer buscará las licencias
+          mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
+          ln -sf ~/.android/sdk/licenses/* ~/.buildozer/android/platform/android-sdk/licenses/
 
-      # # 3. FIJAR EXACTAMENTE Python 3.10, NI UNO MÁS NI MENOS
+      # # 3. FIJAR EXACTAMENTE Python 3.10
       - name: Python EXACTO 3.10
         uses: actions/setup-python@v5
         with:
@@ -42,18 +45,16 @@ jobs:
           sudo apt update -y
           sudo apt install -y --no-install-recommends git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libsqlite3-dev tk-dev libgdbm-compat-dev libc6-dev libbz2-dev
 
-      # # 5. INSTALAR EXACTAMENTE LO QUE DICE TU .spec ANTES DE LLAMAR A BUILDOZER
+      # # 5. INSTALAR CONFIGURACIÓN EXACTA
       - name: Versiones EXACTAS iguales al spec
         run: |
           python -m pip install --upgrade pip setuptools wheel
           pip install cython==0.29.37 buildozer==1.5.0 kivy==2.3.0
 
-      # # 6. Compilar --clean para que no use nada viejo
+      # # 6. Compilar forzando respuestas afirmativas con 'yes'
       - name: Compilar Limpio
         run: |
-          buildozer android debug --clean
-        env:
-          ACCEPT_SDK_LICENSES: "True"
+          yes | buildozer android debug --clean
 
       # # 7. Subir APK
       - name: Subir APK
