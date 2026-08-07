@@ -20,7 +20,9 @@ version = 1.0
 
 # (list) Application requirements
 # Ensure it matches your workflow EXACTLY
-requirements = python3==3.10,kivy==2.3.0,cython==0.29.37
+
+requirements = python3==3.9,kivy==2.1.0,cython==0.29.33
+p4a.branch = stable
 
 # (str) Supported orientation (one of landscape, portrait or all)
 orientation = portrait
