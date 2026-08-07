@@ -1,4 +1,4 @@
-6[app]
+[app]
 
 # (str) Title of your application
 title = GestorMaster5
