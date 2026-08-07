@@ -1,4 +1,4 @@
-[app]
+6[app]
 
 # (str) Title of your application
 title = GestorMaster5
@@ -21,7 +21,7 @@ version = 1.0
 # (list) Application requirements
 # Ensure it matches your workflow EXACTLY
 
-requirements = python3==3.11,kivy==2.3.0,cython==0.29.36
+requirements = python3==3.11.15,kivy==2.3.0,cython==0.29.36
 p4a.branch = master
 
 
