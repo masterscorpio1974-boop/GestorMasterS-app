@@ -5,7 +5,7 @@ package.domain = org.test
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
 version = 1.0
-# ✅ VERSIONES EXACTAS Y COMPATIBLES ENTRE SI
+# 🎯 QUITAMOS LOS COMENTARIOS Y DEJAMOS SOLO LO QUE LEE BUILDOZER
 requirements = python3==3.10, kivy==2.3.0, cython==0.29.37
 orientation = portrait
 
@@ -18,7 +18,7 @@ android.api = 33
 android.minapi = 24
 android.arch = arm64-v8a
 android.apptheme = @android:style/Theme.Holo.Light
-# ✅ QUITAMOS INTERNET SI ES 100% OFFLINE
+# 🚫 YA NO APARECE INTERNET, QUEDA COMENTADO PERFECTO
 # android.permissions = INTERNET
 android.allow_backup = True
 android.buildtools = 33.0.2
