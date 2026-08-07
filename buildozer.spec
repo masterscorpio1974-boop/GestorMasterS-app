@@ -58,17 +58,7 @@ android.buildtools = 33.0.2
 
 # (bool) If True, then automatically accept SDK license agreements.
 # ESTA ES LA LÍNEA MÁGICA QUE EVITA QUE SE DETENGA EL WORKFLOW
-android.accept_sdk_license = True
-
-# =============================================================================
-# Python for android (p4a) specific
-# =============================================================================
-
-# (str) python-for-android branch to use
-p4a.branch = v2024.07.08
-
-# (str) Bootstrap to use for android builds
-p4a.bootstrap = sdl2
+android.accept_sdk_license = true
 
 
 # =============================================================================
