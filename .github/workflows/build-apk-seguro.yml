@@ -50,9 +50,14 @@ jobs:
           pip install cython==0.29.37 buildozer==1.5.0 kivy==2.3.0
 
       # 6. Compilar --clean para que no use nada viejo
+            # 6. Compilar --clean para que no use nada viejo
       - name: Compilar Limpio
         run: |
+          export BUILDOZER_ALLOW_ORG_AND_USER_SUDO=1
           buildozer android debug --clean
+        env:
+          uses-android-sdk-licenses: 1
+
 
       # 7. Subir APK
       - name: Subir APK
