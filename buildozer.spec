@@ -21,7 +21,7 @@ version = 1.0
 # (list) Application requirements
 # Ensure it matches your workflow EXACTLY
 
-requirements = python3==3.11.15,kivy==2.3.0,cython==0.29.36
+requirements = hostpython3==3.11.9,python3==3.11.9,kivy==2.3.0,cython==0.29.36,android,jnius,psutil
 p4a.branch = master
 
 
