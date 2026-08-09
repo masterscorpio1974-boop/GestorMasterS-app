@@ -1,32 +1,21 @@
 name: Compile GestorMasterS DEFINITIVO AZUL
-on: workflow_dispatch
+on: [workflow_dispatch]
 jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11.9'
-      - name: Set up Java 17
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
-      - name: Install deps
-        run: |
-          sudo apt update -y
-          sudo apt install -y zip unzip libffi-dev libssl-dev
-          pip install buildozer==1.5.0 cython==0.29.36
-      - name: Clean
-        run: |
-          rm -rf .buildozer bin __pycache__
-      - name: Build APK
-        run: |
-          yes | buildozer android debug
-      - name: Upload
-        uses: actions/upload-artifact@v4
+      - uses: actions/setup-python@v5
         with:
-          name: GestorMasterS-APK-AZUL-CRISTAL
+          python-version: '3.11'
+      - run: pip install --upgrade pip
+      - run: pip install Cython==0.29.36 buildozer
+      - run: buildozer android debug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GestorMasterS-APK
           path: bin/*.apk
