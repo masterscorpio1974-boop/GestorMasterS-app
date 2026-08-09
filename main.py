@@ -30,15 +30,22 @@ def get_paths():
 def init_db():
     DB_DIR, _, _ = get_paths()
     con = sqlite3.connect(os.path.join(DB_DIR,"datos.db"))
+    # Tabla vieja
     con.execute("""CREATE TABLE IF NOT EXISTS registros(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        tipo TEXT,
-        contenido TEXT,
-        categoria TEXT,
-        fecha TEXT)""")
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      tipo TEXT, contenido TEXT, categoria TEXT, fecha TEXT)""")
+    # NUEVA TABLA QUE PEDISTE OFFGRID
+    con.execute("""CREATE TABLE IF NOT EXISTS clientes(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      nombre TEXT,
+      direccion TEXT,
+      phone TEXT,
+      correo TEXT,
+      ubicacion TEXT,
+      otros TEXT,
+      fecha TEXT)""")
     con.commit()
     con.close()
-
 def add_registro(tipo, contenido, categoria):
     DB_DIR, _, _ = get_paths()
     con = sqlite3.connect(os.path.join(DB_DIR,"datos.db"))
