@@ -1,24 +1,17 @@
 [app]
-title = GestorMasterS
+title = Gestor Master S
 package.name = gestormasters
-package.domain = org.test
+package.domain = com.masters.gestor
 source.dir =.
 source.include_exts = py,png,jpg,kv,atlas,json
-version = 2.0
-requirements = hostpython3==3.11.9,python3==3.11.9,kivy==2.3.0,kivymd==1.1.1,cython==0.29.36,android,jnius,psutil
-p4a.branch = master
+version = 1.0
+requirements = python3==3.11.9,kivy==2.2.0,Cython==0.29.36
 orientation = portrait
-[android]
+fullscreen = 0
+android.api = 31
+android.minapi = 21
 android.ndk = 25b
 android.sdk = 33
-android.api = 33
-android.minapi = 24
-android.archs = arm64-v8a
-android.apptheme =
-android.allow_backup = True
-android.buildtools = 33.0.2
-android.accept_sdk_license = True
-log_level = 2
-warn_on_root_build = False
+android.accept_sdk_license_agreement = True
 [buildozer]
 log_level = 2
