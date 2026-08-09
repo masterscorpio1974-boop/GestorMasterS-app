@@ -5,7 +5,7 @@ package.domain = com.masters.gestor
 source.dir =.
 source.include_exts = py,png,jpg,kv,atlas,json
 version = 1.0
-requirements = python3==3.11.9,kivy==2.2.0,Cython==0.29.36
+requirements = python3,kivy==2.2.0
 orientation = portrait
 fullscreen = 0
 android.api = 31
