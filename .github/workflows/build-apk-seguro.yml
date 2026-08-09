@@ -14,7 +14,9 @@ jobs:
           python-version: '3.11'
       - run: pip install --upgrade pip
       - run: pip install Cython==0.29.36 buildozer
-      - run: buildozer android debug
+      - name: Build APK
+        run: |
+          yes | buildozer android debug
       - uses: actions/upload-artifact@v4
         with:
           name: GestorMasterS-APK
