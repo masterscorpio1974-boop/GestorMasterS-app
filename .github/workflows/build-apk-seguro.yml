@@ -1,3 +1,4 @@
+
 name: Build APK - Gestor Master S
 
 on:
@@ -33,17 +34,14 @@ jobs:
       - name: Instalar Android NDK y SDK de Respaldo
         run: |
           mkdir -p ~/.buildozer/android/platform/
-          # Forzar versiones estables para evitar variaciones automáticas
           echo "sdk_dir = ~/.buildozer/android/platform/android-sdk" >> ~/.buildozer/config
 
-      - name: Auto-Aceptar Licencias de Android
+      - name: Compilar APK con Buildozer (Forzando Licencias Internas)
         run: |
-          yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --licenses || true
-          yes | ${ANDROID_HOME}/tools/bin/sdkmanager --licenses || true
-
-      - name: Compilar APK con Buildozer
-        run: |
-          buildozer android debug
+          # Este comando acepta los términos directo en la raíz de buildozer
+          yes | buildozer android md android.accept_sdk_license=True
+          # Compilación final limpia
+          yes | buildozer android debug
         env:
           BUILDOZER_ALLOW_KIVY_NEW_DESIGN: 1
 
