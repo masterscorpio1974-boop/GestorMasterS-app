@@ -34,8 +34,9 @@ jobs:
           pip install --upgrade pip
           pip install buildozer Cython==0.29.33
 
-      - name: Build with Buildozer
+       - name: Build with Buildozer
         run: |
+          rm -rf.buildozer
           buildozer android debug
 
       - name: Upload APK
