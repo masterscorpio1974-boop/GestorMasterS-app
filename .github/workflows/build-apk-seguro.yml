@@ -1,4 +1,3 @@
-
 name: Build APK - Gestor Master S
 
 on:
@@ -38,9 +37,9 @@ jobs:
 
       - name: Compilar APK con Buildozer (Forzando Licencias Internas)
         run: |
-          # Este comando acepta los términos directo en la raíz de buildozer
-          yes | buildozer android md android.accept_sdk_license=True
-          # Compilación final limpia
+          # Comando corregido para aceptar licencias usando python-for-android nativo
+          yes | buildozer android p4a -- android.accept_sdk_license=True
+          # Compilacion limpia
           yes | buildozer android debug
         env:
           BUILDOZER_ALLOW_KIVY_NEW_DESIGN: 1
