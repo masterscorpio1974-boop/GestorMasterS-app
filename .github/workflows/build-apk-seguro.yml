@@ -27,7 +27,7 @@ jobs:
 
       - name: Build with Buildozer
         run: |
-          rm -rf.buildozer bin
+          rm -rf .buildozer bin
           buildozer -v android debug
 
       - name: Upload APK
