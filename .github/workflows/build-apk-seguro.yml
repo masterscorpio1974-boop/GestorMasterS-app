@@ -1,8 +1,6 @@
 name: Build APK - Gestor Master S
 
 on:
-  push:
-    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -22,6 +20,12 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+
+      - name: Install Android NDK 25b
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r25b
+          link-to-sdk: true
 
       - name: Install dependencies
         run: |
