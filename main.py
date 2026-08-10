@@ -67,6 +67,49 @@ MDScreen:
                         text: ""
                         halign: "center"
                         theme_text_color: "Hint"
-
             Tab:
-                title
+                title: "VER REGISTROS"
+                MDBoxLayout:
+                    orientation: 'vertical'
+                    padding: 20
+                    spacing: 15
+                    MDRaisedButton:
+                        text: "VER TODOS LOS DATOS GUARDADOS"
+                        pos_hint: {"center_x": .5}
+                        on_release: app.ver_datos()
+'''
+
+class GestorMasterS(MDApp):
+    def build(self):
+        return Builder.load_string(KV)
+
+    def on_start(self):
+        # 🧠 DETECTA RAM Y ELIGE MODELO DE IA AUTOMÁTICO
+        ram_gb = round(psutil.virtual_memory().total / (1024**3), 1)
+        if ram_gb >= 8:
+            modelo = "qwen2:7b - Rendimiento Total"
+        elif ram_gb >= 6:
+            modelo = "qwen2:3b - Equilibrado"
+        elif ram_gb >= 4:
+            modelo = "qwen2:1.5b - Ideal"
+        else:
+            modelo = "qwen2:0.5b - Ultra Ligero"
+
+        self.root.ids.label_ram.text = f"RAM: {ram_gb} GB | IA: {modelo}"
+        self.root.ids.ia_descarga.text = f"✅ Este equipo usará automáticamente: {modelo}"
+
+    def guardar_cliente(self):
+        nombre = self.root.ids.nombre.text.strip()
+        tel = self.root.ids.telefono.text.strip()
+        if nombre and tel:
+            store = JsonStore("datos_clientes.json")
+            store.put(nombre, telefono=tel)
+            self.root.ids.nombre.text = ""
+            self.root.ids.telefono.text = ""
+
+    def ver_datos(self):
+        # Aquí listas todo lo guardado
+        pass
+
+if __name__ == "__main__":
+    GestorMasterS().run()
