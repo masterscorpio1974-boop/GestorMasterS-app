@@ -19,27 +19,36 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Install Android NDK 25b
+      - name: Instalar Android NDK r25b
         uses: nttld/setup-ndk@v1
         id: setup-ndk
         with:
           ndk-version: r25b
           link-to: true
 
-      - name: Instalar todo lo necesario
+      - name: Instalar paquetes del sistema
         run: |
           sudo apt update -y
           sudo apt install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev cmake libffi-dev libssl-dev
-          pip install --upgrade pip
+
+      - name: Instalar Buildozer y Cython exactos
+        run: |
+          pip install --upgrade pip setuptools wheel
           pip install cython==0.29.37 buildozer
 
-      - name: Limpiar y compilar
+      - name: ✅ Aceptar licencias SDK ANTES de compilar
+        run: |
+          mkdir -p ~/.android/sdk/licenses
+          echo "24333f8a63b6825ea9c5514f83c2811b00b87329" > ~/.android/sdk/licenses/android-sdk-license
+          echo "84831b9409646a918e30573bab4c9c9f346d8abd" > ~/.android/sdk/licenses/android-sdk-preview-license
+
+      - name: Limpiar compilaciones viejas y compilar
         run: |
           rm -rf .buildozer bin
           buildozer android debug
 
-      - name: Subir APK listo
+      - name: Subir APK final
         uses: actions/upload-artifact@v4
         with:
-          name: GestorMasterS-COMPLETO
+          name: GestorMasterS_v2_OFFGRID_COMPLETO
           path: bin/*.apk
