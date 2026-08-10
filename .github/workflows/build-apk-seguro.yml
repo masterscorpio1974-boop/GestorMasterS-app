@@ -18,6 +18,12 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Install Android NDK 25b
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r25b
+          add-to-path: true
+
       - name: Install dependencies
         run: |
           sudo apt update
