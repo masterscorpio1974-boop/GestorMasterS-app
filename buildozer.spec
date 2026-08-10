@@ -5,7 +5,7 @@ package.domain = com.mastersgrid.offgrid
 source.dir =.
 source.include_exts = py,png,jpg,kv,json
 version = 2.0
-requirements = python3,kivy==2.3.0,kivymd==1.2.0,plyer,android
+requirements = python3==3.11.8,kivy==3.0.0,kivymd==1.2.0,plyer,android
 orientation = portrait
 icon.filename = %(source.dir)s/icon.png
 presplash.filename = %(source.dir)s/icon.png
