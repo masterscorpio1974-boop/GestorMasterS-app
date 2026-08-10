@@ -5,7 +5,7 @@ package.domain = com.masters.gestor
 source.dir =.
 source.include_exts = py,png,jpg,kv,atlas,json
 version = 1.0
-requirements = hostpython3==3.11.8, python3==3.11.8, kivy==2.3.0, Cython==0.29.33, kivymd==1.2.0, pillow, materialyoucolor
+requirements = hostpython3==3.11.8, python3==3.11.8, kivy==2.3.0, Cython==0.29.33, kivymd==1.2.0, pillow, materialyoucolor, android, pyjnius
 orientation = portrait
 fullscreen = 0
 android.api = 33
