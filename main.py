@@ -1,28 +1,22 @@
 from kivymd.app import MDApp
 from kivymd.uix.floatlayout import MDFloatLayout
-from kivy.uix.tab import MDTabsBase
+from kivymd.uix.tab import MDTabsBase
 from kivy.lang import Builder
 from kivy.storage.jsonstore import JsonStore
 from kivymd.uix.dialog import MDDialog
-from kivymd.uix.button import MDFlatButton
+from kivymd.uix.button import MDRaisedButton
 from kivy.uix.scrollview import ScrollView
 from kivymd.uix.label import MDLabel
-import webbrowser
 
-# Intentamos psutil, si falla en Android leemos /proc/meminfo
 def get_ram_gb():
     try:
-        import psutil
-        return round(psutil.virtual_memory().total / (1024**3), 1)
+        with open('/proc/meminfo') as f:
+            for line in f:
+                if 'MemTotal' in line:
+                    kb = int(line.split()[1])
+                    return round(kb / 1024 / 1024, 1)
     except:
-        try:
-            with open('/proc/meminfo') as f:
-                for line in f:
-                    if 'MemTotal' in line:
-                        kb = int(line.split()[1])
-                        return round(kb / 1024 / 1024, 1)
-        except:
-            return 4.0
+        return 4.0
 
 class Tab(MDFloatLayout, MDTabsBase):
     pass
@@ -34,7 +28,7 @@ MDScreen:
         orientation: 'vertical'
         MDBoxLayout:
             size_hint_y: None
-            height: "160dp"
+            height: "100dp"
             orientation: 'vertical'
             padding: 15
             spacing: 5
@@ -49,8 +43,7 @@ MDScreen:
                 halign: "center"
                 theme_text_color: "Custom"
                 text_color: 0,0.7,1,1
-
-        MDTabs:
+                        MDTabs:
             id: tabs
             Tab:
                 title: "Clientes"
@@ -73,29 +66,20 @@ MDScreen:
                             id: correo
                             hint_text: "Correo"
                         MDRaisedButton:
-                            text: "Guardar Cliente OFFGRID"
+                            text: "GUARDAR CLIENTE"
                             pos_hint: {"center_x":.5}
                             on_release: app.guardar_cliente()
-            Tab:
-                title: "IA"
-                MDBoxLayout:
-                    orientation: 'vertical'
-                    padding: 15
-                    spacing: 10
-                    MDLabel:
-                        id: ia_sugerencia
-                        text: "IA: Analisis local..."
-                        halign: "center"
-                    MDLabel:
-                        id: ia_descarga
-                        text: ""
-                        halign: "center"
-                        theme_text_color: "Hint"
-                    MDRaisedButton:
-                        id: btn_ia
-                        text: "COPIAR ENLACE DE DESCARGA IA"
-                        pos_hint: {"center_x":.5}
-                        on_release: app.descargar_ia()
+                        MDLabel:
+                            id: visor_datos
+                            text: "Sin datos"
+                        MDLabel:
+                            id: label_sugerencia
+                            text: ""
+                            halign: "center"
+                        MDLabel:
+                            id: ia_descarga
+                            text: ""
+                            halign: "center"
             Tab:
                 title: "Ver Datos"
                 MDBoxLayout:
@@ -107,14 +91,13 @@ MDScreen:
                         halign: "center"
                         theme_text_color: "Custom"
                         text_color: 0,0.7,1,1
-                        font_style: "H6"
                     MDRaisedButton:
                         text: "MOSTRAR TODOS LOS REGISTROS"
                         pos_hint: {"center_x":.5}
                         md_bg_color: 0,0.5,1,1
                         on_release: app.ver_registros()
                     MDLabel:
-                        id: visor_datos
+                        id: visor_datos2
                         text: "No system entries recorded."
                         halign: "left"
 '''
@@ -126,26 +109,24 @@ class GestorMasterS(MDApp):
     def build(self):
         self.theme_cls.primary_palette = "Blue"
         self.theme_cls.theme_style = "Dark"
-        self.theme_cls.primary_hue = "A700"
         return Builder.load_string(KV)
 
     def on_start(self):
         ram_gb = get_ram_gb()
         if ram_gb >= 8:
-            modelo = "qwen2:7b - Rendimiento Total"
+            modelo = "qwen2_7b - Rendimiento Total"
             self.ia_link = "https://huggingface.co/Qwen/Qwen2-7B-GGUF/resolve/main/qwen2-7b-instruct-q4_0.gguf"
         elif ram_gb >= 6:
-            modelo = "qwen2:3b - Equilibrado"
+            modelo = "qwen2_3b - Equilibrado"
             self.ia_link = "https://huggingface.co/Qwen/Qwen2-3B-GGUF/resolve/main/qwen2-3b-instruct-q4_0.gguf"
         elif ram_gb >= 4:
-            modelo = "qwen2:1.5b - Ideal"
-            self.ia_link = "https://huggingface.co/Qwen/Qwen2-1.5B-GGUF/resolve/main/qwen2-1.5b-instruct-q4_0.gguf"
+            modelo = "qwen2_1.5b - Ideal"
+            self.ia_link = "https://huggingface.co/Qwen/Qwen2-1.5b-GGUF/resolve/main/qwen2-1.5b-instruct-q4_0.gguf"
         else:
-            modelo = "qwen2:0.5b - Ultra Ligero"
+            modelo = "qwen2_0.5b - Ultra Ligero"
             self.ia_link = "https://huggingface.co/Qwen/Qwen2-0.5B-GGUF/resolve/main/qwen2-0.5b-instruct-q4_0.gguf"
-
         self.root.ids.label_ram.text = f"{ram_gb} GB | IA: {modelo}"
-        self.root.ids.ia_sugerencia.text = f"Tu equipo: {ram_gb} GB RAM"
+        self.root.ids.label_sugerencia.text = f"Tu equipo: {ram_gb} GB RAM"
         self.root.ids.ia_descarga.text = f"Descarga recomendada: {modelo}\n{self.ia_link}"
 
     def guardar_cliente(self):
@@ -170,12 +151,8 @@ class GestorMasterS(MDApp):
             texto = ""
             for key in store.keys():
                 data = store.get(key)
-                texto += f"{key} | {data.get('tel','')} | {data.get('dir','')} | {data.get('mail','')}\n---\n"
-        self.root.ids.visor_datos.text = texto
-
-    def descargar_ia(self):
-        if self.ia_link:
-            webbrowser.open(self.ia_link)
+                texto += f"{key} | {data.get('tel','')} | {data.get('dir','')} | {data.get('mail','')}\n\n"
+        self.root.ids.visor_datos2.text = texto
 
 if __name__ == "__main__":
     GestorMasterS().run()
