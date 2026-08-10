@@ -4,6 +4,11 @@ from kivy.utils import platform
 from kivymd.app import MDApp
 from kivy.lang import Builder
 from kivy.metrics import dp
+from kivymd.uix.floatlayout import MDFloatLayout
+from kivymd.uix.tab import MDTabsBase
+
+class Tab(MDFloatLayout, MDTabsBase):
+    pass
 
 def get_base_dir():
     if platform == 'android':
