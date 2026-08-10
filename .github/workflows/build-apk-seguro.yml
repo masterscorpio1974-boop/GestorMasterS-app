@@ -30,17 +30,20 @@ jobs:
           python3 -m pip install --upgrade pip
           python3 -m pip install buildozer cython virtualenv
 
-      - name: Instalar Android NDK y SDK de Respaldo
+            - name: Instalar Android NDK y SDK de Respaldo
         run: |
           mkdir -p ~/.buildozer/android/platform/
-          # Forzar versiones estables para evitar variaciones automáticas
+          # Forzar versiones estables para evitar variaciones automaticas
           echo "sdk_dir = ~/.buildozer/android/platform/android-sdk" >> ~/.buildozer/config
+
+      - name: Auto-Aceptar Licencias de Android
+        run: |
+          yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          yes | ${ANDROID_HOME}/tools/bin/sdkmanager --licenses || true
 
       - name: Compilar APK con Buildozer
         run: |
           buildozer android debug
-        env:
-          BUILDOZER_ALLOW_KIVY_NEW_DESIGN: 1
 
       - name: Subir APK Generado como Artefacto
         uses: actions/upload-artifact@v4
