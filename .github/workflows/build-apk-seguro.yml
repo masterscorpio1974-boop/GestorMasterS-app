@@ -1,37 +1,49 @@
 name: Build APK - Gestor Master S
+
 on:
   workflow_dispatch:
+
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      - name: Checkout del Repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.11.8
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.10.13'
-      - name: Set up Java 17
+          python-version: '3.11.8'
+
+      - name: Configurar Java 17 (Temurin)
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
-      - name: Install Android NDK 25b
-        uses: nttld/setup-ndk@v1
-        id: setup-ndk
-        with:
-          ndk-version: r25b
-          link-to-sdk: true
-      - name: Install dependencies
+
+      - name: Instalar Dependencias del Sistema
         run: |
-          sudo apt update
-          sudo apt install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev libsqlite3-dev
-          pip install --upgrade pip
-          pip install cython==0.29.36 buildozer
-      - name: Build with Buildozer
+          sudo apt-get update
+          sudo apt-get install -y build-essential ccache git libffi-dev libssl-dev unp zip unzip
+          sudo apt-get install -y pipexec libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good
+          python3 -m pip install --upgrade pip
+          python3 -m pip install buildozer cython virtualenv
+
+      - name: Instalar Android NDK y SDK de Respaldo
         run: |
-          rm -rf .buildozer bin
-          yes | buildozer android debug
-      - name: Upload APK
+          mkdir -p ~/.buildozer/android/platform/
+          # Forzar versiones estables para evitar variaciones automáticas
+          echo "sdk_dir = ~/.buildozer/android/platform/android-sdk" >> ~/.buildozer/config
+
+      - name: Compilar APK con Buildozer
+        run: |
+          buildozer android debug
+        env:
+          BUILDOZER_ALLOW_KIVY_NEW_DESIGN: 1
+
+      - name: Subir APK Generado como Artefacto
         uses: actions/upload-artifact@v4
         with:
-          name: GestorMasterS-APK
+          name: GestorMasterS-APK-v2
           path: bin/*.apk
