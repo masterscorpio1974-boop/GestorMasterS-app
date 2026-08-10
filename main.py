@@ -24,7 +24,8 @@ def get_ram_gb():
             with open("/proc/meminfo") as f:
                 for line in f:
                     if "MemTotal" in line:
-                        kb = int(line.split())
+                        kb = int(line.split()[1])
+
                         return round(kb / 1024 / 1024, 1)
         except:
             return 4.0
