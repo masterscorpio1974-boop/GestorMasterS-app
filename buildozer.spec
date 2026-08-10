@@ -1,26 +1,17 @@
 [app]
-title = GestorMasterS v2 OFFGRID
-package.name = mastersgestor
-package.domain = com.mastersgrid.offgrid
-source.dir =.
-source.include_exts = py,png,jpg,kv,json
+title = Gestor Master S
+package.name = gestormastersapp
+package.domain = org.mastersorpiomaster
+source.dir = .
+source.include_exts = py,png,jpg,kv,atlas,ttf
+source.include_patterns = assets/*, *.json
 version = 2.0
-requirements = python3==3.11.8,kivy==3.0.0,kivymd==1.2.0,plyer,android
+requirements = python3==3.11.8,hostpython3==3.11.8,kivy,kivymd,pyobjus;platform==MacOSX,plyer,pyjnius
 orientation = portrait
-icon.filename = %(source.dir)s/icon.png
-presplash.filename = %(source.dir)s/icon.png
+fullscreen = 1
+android.archs = arm64-v8a, armeabi-v7a
+android.allow_backup = True
 
 [buildozer]
 log_level = 2
 warn_on_root = 1
-
-[app:android]
-android.permissions = INTERNET,READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE
-android.api = 33
-android.minapi = 21
-android.ndk = 25b
-android.sdk = 33
-android.build_tools_version = 33.0.2
-android.accept_sdk_license_agreement = True
-p4a.bootstrap = sdl2
-android.archs = arm64-v8a, armeabi-v7a
