@@ -3,10 +3,10 @@ title = GestorMasterS v2 OFFGRID
 package.name = mastersgestor
 package.domain = com.mastersgrid.offgrid
 source.dir = .
-source.include_exts = py,png,kv,json
+source.include_exts = py,png,kv,json,db
 version = 1.0
 
-# ✅ REQUISITOS EXACTOS PARA CARGAR TU DISEÑO Y LOGO
+# ✅ EXACTAS Y COMPATIBLES
 requirements = python3,
     kivy==2.3.0,
     kivymd==2.0.0,
@@ -20,7 +20,14 @@ requirements = python3,
 
 orientation = portrait
 icon.filename = %(source.dir)s/icon.png
+android.icon = %(source.dir)s/icon.png
+android.icon_round = %(source.dir)s/icon.png
+preserve_assets = *.png, *.kv, *.json, *.db
 p4a.bootstrap = sdl2
+
+# ✅ CLAVE PARA QUE NO FALLE MAS
+android.build_tools_version = "34.0.0"
+android.accept_sdk_license_agreement = True
 
 [buildozer]
 log_level = 2
@@ -29,6 +36,5 @@ log_level = 2
 android.permissions = INTERNET, READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE
 android.api = 33
 android.minapi = 21
-android.ndk = 25b
-android.accept_sdk_license = True
+android.ndk = r25b
 android.features = android.hardware.touchscreen
