@@ -6,7 +6,6 @@ source.dir = .
 source.include_exts = py,png,kv,json,db
 version = 1.0
 
-# ✅ EXACTAS Y COMPATIBLES
 requirements = python3,
     kivy==2.3.0,
     kivymd==2.0.0,
@@ -25,7 +24,7 @@ android.icon_round = %(source.dir)s/icon.png
 preserve_assets = *.png, *.kv, *.json, *.db
 p4a.bootstrap = sdl2
 
-# ✅ CLAVE PARA QUE NO FALLE MAS
+# ✅ LO QUE ARREGLABA Y FALTABA:
 android.build_tools_version = "34.0.0"
 android.accept_sdk_license_agreement = True
 
