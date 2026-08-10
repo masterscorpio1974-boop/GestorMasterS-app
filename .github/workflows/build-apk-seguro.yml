@@ -1,6 +1,5 @@
 name: Build APK DEFINITIVO - Gestor Master S
-on:
-  workflow_dispatch:
+on: workflow_dispatch
 
 jobs:
   build:
@@ -8,49 +7,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Python 3.10
+      - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      - name: Java 17
+      - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: NDK r25b CORREGIDO
-        uses: nttld/setup-ndk@v1
-        with:
-          ndk-version: r25b
-          add-to-path: true
-
-      - name: LICENCIAS EN LA RUTA QUE USA BUILDOZER
+      - name: Install dependencies
         run: |
-          mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
-          echo "24333f8a63b6825ea9c5514f83c2811b00b87329" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
-          echo "84831b9409646a918e30573bab4c9c9f346d8abd" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-preview-license
-          # Copiamos tambien a la ruta estandar por si las dudas
-          mkdir -p ~/.android/licenses
-          cp ~/.buildozer/android/platform/android-sdk/licenses/* ~/.android/licenses/
+          sudo apt update
+          sudo apt install -y python3-pip zip unzip openjdk-17-jdk libffi-dev libssl-dev
+          pip install --upgrade pip
+          pip install buildozer==1.5.0 cython==0.29.36
 
-      - name: Paquetes sistema
+      - name: Build with Buildozer
         run: |
-          sudo apt update -y
-          sudo apt install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev cmake libffi-dev libssl-dev
+          rm -rf.buildozer bin
+          buildozer -v android debug
 
-      - name: Versiones exactas IGUALES A LA QUE SALIO VERDE
-        run: |
-          pip install --upgrade pip setuptools wheel
-          pip install cython==0.29.37 buildozer==1.6.0
-
-      - name: Compilar IGUAL QUE EN LA EXITOSA
-        run: |
-          rm -rf .buildozer bin
-          buildozer android debug
-
-      - name: Subir APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: GestorMasterS_COMPLETO
+          name: GestorMasterS-APK
           path: bin/*.apk
