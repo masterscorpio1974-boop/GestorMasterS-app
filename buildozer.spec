@@ -4,9 +4,8 @@ package.name = gestormastersapp
 package.domain = org.mastersorpiomaster
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,ttf
-source.include_patterns = assets/*, *.json, *.md
 version = 2.0
-requirements = python3,kivy==3.0.0,kivymd,plyer,android,pyjnius
+requirements = python3,kivy,kivymd,plyer,android,pyjnius
 icon.filename = %(source.dir)s/icon.png
 orientation = portrait
 fullscreen = 1
