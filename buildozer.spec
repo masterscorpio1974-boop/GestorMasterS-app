@@ -2,17 +2,16 @@
 title = Gestor Master S
 package.name = gestormastersapp
 package.domain = org.mastersorpiomaster
-source.dir = .
-source.include_exts = py,png,jpg,kv,atlas,ttf
-source.include_patterns = assets/*, *.json, *.md
+source.dir =.
+source.include_exts = py,png,jpg,kv,atlas,ttf,json,md
+source.include_patterns = assets/*,*.json,*.md
 version = 2.0
-requirements = python3==3.11.1,hostpython3==3.11.1,kivy,kivymd,plyer,android,pyjnius
+requirements = hostpython3==3.11.8,python3==3.11.8,kivy==3.0.0,kivymd==1.2.0,plyer,android,pyjnius
 icon.filename = %(source.dir)s/icon.png
 orientation = portrait
-fullscreen = 1
+fullscreen = 0
 android.archs = arm64-v8a, armeabi-v7a
-android.allow_backup = True
-android.permissions = INTERNET, READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE
+android.permissions = INTERNET
 
 [buildozer]
 log_level = 2
