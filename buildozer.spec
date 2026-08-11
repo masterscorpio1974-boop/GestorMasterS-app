@@ -1,4 +1,4 @@
-3[app]
+[app]
 title = Gestor Master S
 package.name = gestormastersapp
 package.domain = com.masterscorpio.gestormasters
