@@ -73,7 +73,9 @@ MDScreen:
                             id: visor_datos
                             text: "Sin registros"
                             adaptive_height: True
-'''class GestorMasterS(MDApp):
+'''
+
+class GestorMasterS(MDApp):
     ia_link = ""
     def build(self):
         self.theme_cls.theme_style = "Dark"
