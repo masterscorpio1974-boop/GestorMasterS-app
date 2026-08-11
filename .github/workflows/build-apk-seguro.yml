@@ -33,7 +33,7 @@ jobs:
           mkdir -p ~/.android
           touch ~/.android/repositories.cfg
           yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses || true
-          yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.2" "platforms;android-33" "platform-tools" || true
+          yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.2" "build-tools;37.0.0" "platforms;android-33" "platform-tools" || true
           buildozer android debug
       - name: Upload APK
         uses: actions/upload-artifact@v4
