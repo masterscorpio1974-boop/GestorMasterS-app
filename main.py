@@ -146,3 +146,40 @@ class GestorMasterS(MDApp):
 
     def guardar_cliente(self):
         nom = self.root.ids.nombre.text.strip()
+    def guardar_cliente(self):
+        nom = self.root.ids.nombre.text.strip()
+        tel = self.root.ids.telefono.text.strip()
+        direccion = self.root.ids.direccion.text.strip()
+        correo = self.root.ids.correo.text.strip()
+        
+        if not nom:
+            self.root.ids.visor_datos.text = "Error: Pon al menos el nombre"
+            return
+            
+        # Guardar en archivo local .md
+        ruta = "/sdcard/Download/clientes.md" if platform == 'android' else "clientes.md"
+        try:
+            os.makedirs(os.path.dirname(ruta), exist_ok=True)
+        except:
+            pass
+            
+        with open(ruta, "a", encoding="utf-8") as f:
+            f.write(f"- {nom} | {tel} | {direccion} | {correo}\n")
+            
+        self.root.ids.visor_datos.text = f"Guardado: {nom}"
+        self.root.ids.nombre.text = ""
+        self.root.ids.telefono.text = ""
+        self.root.ids.direccion.text = ""
+        self.root.ids.correo.text = ""
+
+    def ver_registros(self):
+        ruta = "/sdcard/Download/clientes.md" if platform == 'android' else "clientes.md"
+        if os.path.exists(ruta):
+            with open(ruta, "r", encoding="utf-8") as f:
+                datos = f.read()
+            self.root.ids.visor_datos.text = datos if datos else "No hay registros"
+        else:
+            self.root.ids.visor_datos.text = "Registros en Sistema\nNo system entries recorded."
+
+if __name__ == '__main__':
+    GestorMasterS().run()
