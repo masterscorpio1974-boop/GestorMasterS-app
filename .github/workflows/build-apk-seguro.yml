@@ -32,8 +32,19 @@ jobs:
           rm -rf .buildozer bin
           mkdir -p ~/.android
           touch ~/.android/repositories.cfg
+          mkdir -p $ANDROID_SDK_ROOT/licenses
+          echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > $ANDROID_SDK_ROOT/licenses/android-sdk-license
+          echo "d56f5187479451eabf01fb78af6dfcb131a6481e" >> $ANDROID_SDK_ROOT/licenses/android-sdk-license
           yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses || true
           yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.2" "build-tools;37.0.0" "platforms;android-33" "platform-tools" || true
+          # Primera corrida para que buildozer cree su SDK interno
+          buildozer android debug || true
+          # Ahora aceptamos licencia en el SDK PRIVADO de buildozer
+          mkdir -p $HOME/.buildozer/android/platform/android-sdk/licenses
+          cp $ANDROID_SDK_ROOT/licenses/* $HOME/.buildozer/android/platform/android-sdk/licenses/ || true
+          yes | $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          yes | $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager "build-tools;37.0.0" "build-tools;33.0.2" || true
+          # Segunda corrida ya con licencia aceptada, esta sí jala
           buildozer android debug
       - name: Upload APK
         uses: actions/upload-artifact@v4
