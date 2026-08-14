@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" name="viewport" content="width=device-width,initial-scale=1">
+<title>GESTOR ROJO</title>
+<style>
+body{background:#000;color:#fff;font-family:monospace;margin:0;padding:10px}
+.logo{width:90px;height:90px;margin:auto;background:url(icon.png) center/cover;border-radius:50%;border:3px solid #FF0000;box-shadow:0 0 20px #FF0000}
+h1{color:#FF0000;text-align:center}
+.card{background:#111;border:1px solid #FF0000;border-radius:16px;padding:12px;margin:10px 0}
+input{width:100%;padding:12px;margin:5px 0;background:#222;color:#fff;border:none;border-radius:10px;box-sizing:border-box}
+.btn{width:100%;padding:14px;border:none;border-radius:12px;font-weight:bold;margin-top:8px}
+.red{background:#FF0000;color:#000}.gray{background:#333;color:#fff}
+pre{white-space:pre-wrap;background:#0a0a0a;padding:8px;border-radius:10px}
+</style>
+</head>
+<body>
+<div class="logo"></div>
+<h1>📦 GESTOR ROJO OFFGRID</h1>
+<p style="text-align:center;color:#FF0000">✅ SIN INTERNET · SIN GOOGLE · 100% LOCAL</p>
+<div class="card">
+  <b style="color:#FF0000">CLIENTES OFFGRID</b><br>
+  <input id="nombre" placeholder="1. Nombre">
+  <input id="direccion" placeholder="2. Direccion">
+  <input id="phone" placeholder="3. Phone">
+  <input id="correo" placeholder="4. Correo">
+  <input id="gps" placeholder="5. Ubicacion GPS">
+  <input id="otros" placeholder="6. Etc / Otros">
+  <button class="btn red" onclick="guardarCliente()">GUARDAR CLIENTE OFFGRID</button>
+</div>
+<div class="card">
+  <input id="nota" placeholder="Nota rapida...">
+  <div style="display:flex;gap:6px">
+    <button class="btn gray" onclick="guardar('nota')">📝 Nota</button>
+    <button class="btn gray" onclick="guardar('tarea')">✅ Tarea</button>
+  </div>
+</div>
+<div class="card">
+  <button class="btn gray" onclick="consultar()">🔍 Ver Todo</button>
+  <button class="btn gray" onclick="backup()">💾 Backup .json</button>
+  <pre id="lista">Iniciando DB ROJA...</pre>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
