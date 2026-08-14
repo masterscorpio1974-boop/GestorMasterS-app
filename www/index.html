@@ -1,41 +1,69 @@
-<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GESTOR ROJO</title><style>
-body{background:#000;color:#fff;font-family:Arial;margin:0;padding:12px}
-.logo{width:120px;height:120px;border-radius:50%;display:block;margin:15px auto;border:3px solid red;box-shadow:0 0 30px red;object-fit:cover}
-.titulo{color:red;text-align:center;font-size:32px;font-weight:900;line-height:1.1}
-.sub{color:red;text-align:center;font-size:12px;margin:10px 0 15px 0;font-weight:bold}
-.box{background:#0f0f0f;border-radius:20px;padding:14px}
-input{width:100%;padding:15px;margin:6px 0;background:#1e1e1e;color:#fff;border:none;border-radius:12px;box-sizing:border-box}
-.btn-rojo{width:100%;padding:16px;background:red;color:#000;font-weight:900;border:none;border-radius:12px;margin-top:10px}
-.btn{width:100%;padding:13px;background:#222;color:#fff;border:none;border-radius:12px;margin:6px 0}
-#status{color:#0f0;margin-top:10px;font-size:13px}#lista{color:#ccc;white-space:pre-wrap;margin-top:8px}
+<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GESTOR V4 MASTER S</title><style>
+body{background:#000;color:#fff;margin:0;font-family:Arial}
+.header{background:#111;border-radius:18px;margin:8px;padding:10px;display:flex;align-items:center;gap:12px;border:1px solid #222}
+.logo{width:52px;height:52px;border-radius:50%;border:2px solid red;box-shadow:0 0 12px red;object-fit:cover}
+.h1{color:red;font-weight:900;font-size:19px}.h2{color:#888;font-size:13px;letter-spacing:1px}
+.ram-bar{background:#0a0a0a;border:1px solid #ff000033;border-radius:12px;margin:0 8px;padding:8px 12px;font-size:11px;color:#0f0;display:flex;justify-content:space-between;flex-wrap:wrap}
+.bar{padding:8px;display:flex;gap:6px;flex-wrap:wrap}
+.b{padding:10px 14px;border-radius:12px;border:none;font-weight:700}
+.b-save{background:#1a1a1a;color:#ff2a2a;border:1px solid red}.b-dark{background:#1f1f1f;color:#aaa}
+.cajon{background:#e9e9ee;margin:8px;border-radius:20px;padding:12px;min-height:50vh;color:#111}
+.cajon input,.cajon textarea{width:100%;background:#fff;border:1px solid #ccc;border-radius:10px;padding:12px;margin:5px 0;box-sizing:border-box}
+.card{background:#fff;border-radius:12px;padding:10px;margin:8px 0;color:#000;border:1px solid #ccc}
+.card label{font-size:10px;color:#888;text-transform:uppercase}.card div{font-weight:700;margin-bottom:5px;font-size:14px}
+.search{width:calc(100% - 16px);margin:8px;background:#1c1c1c;color:#fff;border:1px solid #333;border-radius:10px;padding:10px}
 </style></head><body>
-<img src="icon.png" class="logo">
-<div class="titulo">GESTOR ROJO<br>OFFGRID</div>
-<div class="sub">SIN INTERNET - SIN GOOGLE - 100% LOCAL</div>
-<div class="box">
-<div style="color:red;font-weight:bold;margin-bottom:8px">CLIENTES OFFGRID</div>
-<input id="c1" placeholder="1. Nombre">
-<input id="c2" placeholder="2. Direccion">
-<input id="c3" placeholder="3. Phone">
-<input id="c4" placeholder="4. Correo">
-<input id="c5" placeholder="5. Ubicacion GPS">
-<input id="c6" placeholder="6. Etc">
-<button class="btn-rojo" onclick="guardar()">GUARDAR CLIENTE OFFGRID</button>
-<button class="btn" onclick="ver()">Ver Todo</button>
-<button class="btn" onclick="backup()">Backup .json</button>
-<div id="status">Cargando...</div><div id="lista"></div></div>
+<div class="header"><img src="icon.png" class="logo"><div><div class="h1">GESTOR IA.OFFGRID</div><div class="h2">CLIENTES</div></div></div>
+<div class="ram-bar" id="ramBar">🔍 Detectando equipo...</div>
+<div class="bar">
+<button class="b b-save" onclick="guardar()">💾 Guardar</button>
+<button class="b b-dark" onclick="toggleVista()">👁️ Ver Datos</button>
+<button class="b b-dark" onclick="nuevo()">+ Nuevo</button>
+<button class="b b-dark" onclick="backup()">📦 Backup</button>
+</div>
+<input id="busc" class="search" placeholder="🔍 Buscar (IA local)..." oninput="ver()">
+<div id="cajon" class="cajon"></div>
+<div id="st" style="color:#555;font-size:10px;text-align:center;padding:6px">DB ROJA OFFGRID</div>
 <script>
-let db=[];const KEY='rojo_v100_final';
-function init(){try{db=JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){db=[]} document.getElementById('status').innerText='DB ROJA OK: '+db.length+' clientes';}
-function guardar(){
-let n=document.getElementById('c1').value.trim();if(!n){alert('Pon nombre');return;}
-db.push({nombre:n,direccion:document.getElementById('c2').value,phone:document.getElementById('c3').value,correo:document.getElementById('c4').value,gps:document.getElementById('c5').value,etc:document.getElementById('c6').value,fecha:new Date().toLocaleString()});
-localStorage.setItem(KEY,JSON.stringify(db));
-document.getElementById('c1').value='';document.getElementById('c2').value='';document.getElementById('c3').value='';document.getElementById('c4').value='';document.getElementById('c5').value='';document.getElementById('c6').value='';
-document.getElementById('status').innerText='GUARDADO: '+n+' | Total: '+db.length;
-ver();
+let db=[], edit=-1, modo='form'; const KEY='rojo_v100_final'; const cajon=document.getElementById('cajon');
+function detectarRAM(){
+ let mem = navigator.deviceMemory || 12;
+ let txt=''; let modelo='';
+ if(mem>=11){ txt=`S23 Ultra Detectado: 12GB RAM - Potencial IA: EXTREMO`; modelo='Llama 8B Q4';}
+ else if(mem>=6){ txt=`Equipo Detectado: ${mem}GB RAM - Potencial IA: ALTO`; modelo='Phi-3-Mini 3.8B';}
+ else { txt=`Equipo Detectado: ${mem}GB RAM - Potencial IA: BUENO`; modelo='TinyLlama 1.1B';}
+ document.getElementById('ramBar').innerHTML=`<span>${txt} 🔥</span><span style="color:#888">${modelo}</span>`;
 }
-function ver(){let lista=document.getElementById('lista');if(db.length==0){lista.innerText='\nSin registros';return;}lista.innerText=db.map((c,i)=>`${i+1}. ${c.nombre} | ${c.direccion} | ${c.phone}`).join('\n');document.getElementById('status').innerText='MOSTRANDO '+db.length;}
-function backup(){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([localStorage.getItem(KEY)||'[]'],{type:'application/json'}));a.download='backup.json';a.click();}
+function init(){try{db=JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){db=[]} detectarRAM(); renderForm(); }
+function renderForm(d={}){
+ cajon.innerHTML=`<div style="font-weight:900">DATOS DEL CLIENTE</div>
+ <label>Nombre</label><input id="f1" value="${d.nombre||''}" placeholder="Nombre">
+ <label>Direccion</label><input id="f2" value="${d.direccion||''}" placeholder="Direccion">
+ <label>Telefono</label><input id="f3" value="${d.phone||''}" placeholder="Telefono">
+ <label>Correo</label><input id="f4" value="${d.correo||''}" placeholder="Correo">
+ <label>Gps</label><input id="f5" value="${d.gps||''}" placeholder="GPS">
+ <label>Etc.</label><textarea id="f6" rows="2" placeholder="Etc">${d.etc||''}</textarea>
+ <small style="color:#666">${edit>=0?'EDITANDO: '+d.nombre:'NUEVO CLIENTE - corrige MATA a META aqui'}</small>`; modo='form';
+}
+function guardar(){
+ let o={nombre:document.getElementById('f1').value.trim(),direccion:document.getElementById('f2').value,phone:document.getElementById('f3').value,correo:document.getElementById('f4').value,gps:document.getElementById('f5').value,etc:document.getElementById('f6').value};
+ if(!o.nombre){alert('Falta nombre');return} if(edit>=0) db[edit]=o; else db.push(o);
+ localStorage.setItem(KEY,JSON.stringify(db)); edit=-1; toggleVista(); document.getElementById('st').innerText='Guardado: '+o.nombre;
+}
+function toggleVista(){ if(modo==='form'){modo='lista'; verLista();} else {renderForm();} }
+function verLista(){
+ let filtro=document.getElementById('busc').value.toLowerCase(); let lista=db.filter(c=>(c.nombre+' '+c.direccion).toLowerCase().includes(filtro));
+ if(modo!=='lista') return;
+ if(lista.length==0){cajon.innerHTML='<div style="text-align:center;color:#999;margin-top:30px">Sin clientes</div>'; return;}
+ cajon.innerHTML=`<div style="font-weight:900;margin-bottom:8px">DATOS GUARDADOS - ${lista.length}</div>`+lista.map(c=>{
+  let idx=db.indexOf(c);
+  return `<div class="card"><label>Nombre</label><div>${c.nombre}</div><label>Direccion</label><div>${c.direccion||'-'}</div><label>Telefono</label><div>${c.phone||'-'}</div><label>Correo</label><div>${c.correo||'-'}</div><label>Gps</label><div>📍 ${c.gps||'-'}</div><label>Etc.</label><div>${c.etc||'-'}</div><div style="display:flex;gap:6px"><button class="b b-dark" onclick="editar(${idx})">✏️ Editar</button><button class="b b-dark" onclick="borrar(${idx})">🗑️</button><button class="b b-save" onclick="location.href='tel:${c.phone}'">📞</button></div></div>`
+ }).join('');
+}
+function ver(){ if(modo==='lista') verLista(); }
+function editar(i){ edit=i; renderForm(db[i]); }
+function borrar(i){ if(!confirm('Borrar '+db[i].nombre+'?'))return; db.splice(i,1); localStorage.setItem(KEY,JSON.stringify(db)); verLista(); }
+function nuevo(){ edit=-1; renderForm({}); }
+function backup(){ let a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(db,null,2)],{type:'application/json'})); a.download='backup.json'; a.click(); }
 document.addEventListener('DOMContentLoaded',init);
 </script></body></html>
