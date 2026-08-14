@@ -26,15 +26,16 @@ input{width:100%;padding:15px;margin:6px 0;background:#1e1e1e;color:#fff;border:
 <div id="status">Cargando...</div><div id="lista"></div></div>
 <script>
 let db=[];const KEY='rojo_v100_final';
-function init(){try{db=JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){db=[]}status.innerText='DB ROJA OK: '+db.length+' clientes';}
+function init(){try{db=JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){db=[]} document.getElementById('status').innerText='DB ROJA OK: '+db.length+' clientes';}
 function guardar(){
-let n=c1.value.trim();if(!n){alert('Pon nombre');return;}
-db.push({nombre:n,direccion:c2.value,phone:c3.value,correo:c4.value,gps:c5.value,etc:c6.value,fecha:new Date().toLocaleString()});
+let n=document.getElementById('c1').value.trim();if(!n){alert('Pon nombre');return;}
+db.push({nombre:n,direccion:document.getElementById('c2').value,phone:document.getElementById('c3').value,correo:document.getElementById('c4').value,gps:document.getElementById('c5').value,etc:document.getElementById('c6').value,fecha:new Date().toLocaleString()});
 localStorage.setItem(KEY,JSON.stringify(db));
-c1.value=c2.value=c3.value=c4.value=c5.value=c6.value='';
-status.innerText='GUARDADO: '+n+' | Total: '+db.length;
+document.getElementById('c1').value='';document.getElementById('c2').value='';document.getElementById('c3').value='';document.getElementById('c4').value='';document.getElementById('c5').value='';document.getElementById('c6').value='';
+document.getElementById('status').innerText='GUARDADO: '+n+' | Total: '+db.length;
+ver();
 }
-function ver(){if(db.length==0){lista.innerText='\nSin registros';return;}lista.innerText=db.map((c,i)=>`${i+1}. ${c.nombre} | ${c.direccion} | ${c.phone}`).join('\n');status.innerText='MOSTRANDO '+db.length;}
-function backup(){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([localStorage.getItem(KEY)],{type:'application/json'}));a.download='backup.json';a.click();}
+function ver(){let lista=document.getElementById('lista');if(db.length==0){lista.innerText='\nSin registros';return;}lista.innerText=db.map((c,i)=>`${i+1}. ${c.nombre} | ${c.direccion} | ${c.phone}`).join('\n');document.getElementById('status').innerText='MOSTRANDO '+db.length;}
+function backup(){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([localStorage.getItem(KEY)||'[]'],{type:'application/json'}));a.download='backup.json';a.click();}
 document.addEventListener('DOMContentLoaded',init);
-</script></body></html>  
+</script></body></html>
