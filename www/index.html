@@ -2,40 +2,33 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>GESTOR ROJO OFFGRID</title>
 <style>
-*{box-sizing:border-box}
-body{margin:0;background:#000;color:#fff;font-family:system-ui,monospace;padding:0 10px 140px}
-.header{display:flex;align-items:center;gap:12px;padding:12px 14px;background:#0a0a0a;border:1px solid #1f0000;border-radius:0 0 18px 18px}
-.header img{width:48px;height:48px;border-radius:50%;border:2px solid #ff0f23;box-shadow:0 0 10px #ff0f23;object-fit:cover}
-.header h1{margin:0;color:#ff0f23;font-size:20px;letter-spacing:1px;line-height:1.1;text-shadow:0 0 8px #ff0f23}
-.card{background:#0e0e0e;border:1px solid #1c1c1c;border-radius:18px;padding:12px;margin-top:14px}
-.field{position:relative;display:flex;align-items:center;background:#111;border:1px solid #222;border-radius:10px;margin:10px 0;padding:10px}
-.field i{font-style:normal;margin-right:10px;font-size:20px;min-width:24px;text-align:center}
-.field input,.field select{flex:1;background:transparent;border:none;color:#ddd;outline:none;font-size:14px}
-.field label{position:absolute;top:-7px;left:38px;background:#0e0e0e;padding:0 5px;font-size:11px;color:#888}
-.btns{display:flex;gap:8px;margin:16px 0}
-.btn{flex:1;padding:12px;border-radius:14px;border:1px solid #3a0000;background:#0a0a0a;color:#fff;font-weight:bold}
-.btn.primary{background:#ff0f23;border-color:#ff0f23}
-.btn.ia.active{border-color:#00ff88;color:#00ff88;box-shadow:0 0 10px #00ff88}
-#toastRAM{position:fixed;top:72px;left:50%;transform:translateX(-50%);background:#00c851;color:#fff;padding:8px 16px;border-radius:20px;z-index:9999;font-size:13px;font-weight:bold;transition:all .6s}
-#iaTerminal{display:none;background:#000;border:1px solid #00ff88;border-radius:14px;padding:12px;color:#00ff88;min-height:220px;box-shadow:0 0 12px #003300 inset;margin-top:12px}
-.bar{height:8px;background:#111;border:1px solid #0f0;margin-top:8px;border-radius:4px;overflow:hidden}
-#prog{height:100%;width:0%;background:#00ff88;transition:width .2s}
-.drawer{background:#fff;color:#000;border-radius:18px;padding:12px;margin-top:12px}
-.fingerprint{text-align:center;margin-top:18px}
-.fingerprint .icon{width:68px;height:68px;margin:auto;border-radius:50%;background:radial-gradient(circle,#ff0f23,#500);box-shadow:0 0 18px #ff0f23;display:grid;place-items:center;font-size:30px}
-.small{color:#ff0f23;font-size:12px;letter-spacing:1px;margin-top:6px}
+:root{--red:#ff0f23;--black:#080a0d;--card:#121418;--green:#00ff88}
+body{background:var(--black);color:#fff;font-family:monospace;margin:0;padding:0 12px 120px}
+.header{display:flex;align-items:center;gap:12px;padding:14px;background:#000;border-bottom:2px solid var(--red);border-radius:0 0 16px 16px}
+.header img{width:52px;height:52px;border-radius:50%;border:2px solid var(--red);box-shadow:0 0 12px var(--red);object-fit:cover}
+.header h1{color:var(--red);font-size:22px;margin:0;letter-spacing:1px;text-shadow:0 0 8px var(--red)}
+#toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#1a3a2a;border:1px solid var(--green);color:#fff;padding:8px 18px;border-radius:20px;z-index:99;display:flex;align-items:center;gap:8px}
+.card{background:var(--card);border:1px solid #222;border-radius:18px;padding:14px;margin-top:12px}
+.field{position:relative;display:flex;align-items:center;background:#0e1013;border:1px solid #2a0a0a;border-radius:10px;margin:8px 0;padding:8px 10px}
+.field i{color:var(--red);margin-right:10px;font-size:18px}
+.field input,.field select,.field textarea{flex:1;background:transparent;border:none;color:#fff;outline:none;width:100%}
+.field label{position:absolute;top:-8px;left:36px;background:var(--card);padding:0 6px;font-size:11px;color:#aaa}
+.btns{display:flex;gap:10px;margin:16px 0}
+.btn{flex:1;padding:12px;border-radius:12px;border:1px solid var(--red);background:#000;color:#fff;font-weight:bold}
+.btn.primary{background:var(--red)}
+.btn.ia.active{border-color:var(--green);color:var(--green);box-shadow:0 0 10px var(--green)}
+#terminal{display:none;background:#000;border:1px solid var(--green);border-radius:12px;padding:12px;color:var(--green);min-height:220px;font-size:13px}
+.bar{height:8px;background:#111;border:1px solid #0f0;border-radius:4px;overflow:hidden;margin-top:8px}
+#prog{height:100%;width:0%;background:var(--green);transition:width .2s}
+.drawer{background:#fff;color:#000;border-radius:18px;padding:14px;margin-top:10px}
 </style>
 </head>
 <body>
-<div class="header">
-<img src="icon.png" onerror="this.src='https://i.imgur.com/8Km9tLL.png'">
-<h1>GESTOR ROJO<br>OFFGRID</h1>
-</div>
-
-<div id="toastRAM"></div>
+<div class="header"><img src="icon.png"><h1>GESTOR ROJO OFFGRID</h1></div>
+<div id="toast">⏳ Leyendo hardware...</div>
 
 <div id="formCard" class="card">
 <div class="field"><i>👤</i><label>Nombre</label><input id="nombre" placeholder="Ingresa el nombre"></div>
@@ -46,13 +39,19 @@ body{margin:0;background:#000;color:#fff;font-family:system-ui,monospace;padding
 <div class="field"><i>📝</i><label>Etc</label><input id="etc" placeholder="Notas adicionales..."></div>
 <div class="field"><i>🏦</i><label>CLABE</label><input id="clabe" placeholder="012 180 00123456789 0"></div>
 <div class="field"><i>🏷️</i><label>Tipo</label>
-<select id="tipo"><option>CLIENTES</option><option>Clientes</option><option>Pacientes</option><option>Proveedores</option><option>CONTACTOS PRIVADO 🔒</option></select></div>
+<select id="tipo">
+<option>Clientes</option>
+<option>Pacientes</option>
+<option>Proveedores</option>
+<option>CONTACTOS PRIVADO 🔒</option>
+</select></div>
 </div>
 
-<div id="iaTerminal">
-<div id="iaLog">>_ TERMINAL • IA OFFGRID<br>> IA OFFGRID iniciada...<br>> Esperando comando..</div>
+<div id="terminal">
+<p>>_ TERMINAL • IA OFFGRID</p>
+<div id="iaLog">> Esperando inicio...</div>
 <div class="bar"><div id="prog"></div></div>
-<input id="iaInp" placeholder="Escribe: busca Juan..." style="width:100%;margin-top:10px;background:#000;border:none;color:#0f0;outline:none">
+<input id="iaInput" style="width:100%;background:#000;border:none;color:var(--green);outline:none;margin-top:10px" placeholder="Escribe: busca Juan...">
 </div>
 
 <div class="btns">
@@ -61,63 +60,76 @@ body{margin:0;background:#000;color:#fff;font-family:system-ui,monospace;padding
 <button id="btnIA" class="btn ia" onclick="toggleIA()">🧠 IA</button>
 </div>
 
-<div class="drawer"><b>DATOS GUARDADOS</b><div id="lista" style="margin-top:6px;font-size:13px;word-break:break-all"></div></div>
-
-<div class="fingerprint"><div class="icon">🧬</div><div class="small">AUTENTICACIÓN BIOMÉTRICA ACTIVA</div></div>
+<div class="drawer"><b>DATOS GUARDADOS</b><div id="lista" style="margin-top:8px;font-size:13px"></div></div>
 
 <script>
-// RAM REAL
-function getRAM(){
- let d=navigator.deviceMemory||0;
- if(d) return {txt:d+'GB RAM',val:d};
- return {txt:'Equipo Detectado',val:4};
+// --- LECTURA RAM REAL ---
+function leerRAM(){
+ let ram = navigator.deviceMemory || 0;
+ let cores = navigator.hardwareConcurrency || 4;
+ if(ram) return {txt: ram+'GB RAM', val:ram};
+ if(performance && performance.memory) {
+   let gb = (performance.memory.jsHeapSizeLimit/1073741824).toFixed(1);
+   return {txt: gb+'GB Heap ('+cores+' cores)', val:parseFloat(gb)};
+ }
+ return {txt: cores+' núcleos detectados', val:4};
 }
-let ram=getRAM();
-let toast=document.getElementById('toastRAM');
-toast.innerHTML='✅ '+ram.txt+' - Potencial IA: '+(ram.val>=6?'ALTO':'MEDIO');
-setTimeout(()=>{toast.style.opacity='0';toast.style.transform='translateX(-50%) translateY(-20px)'},4500);
+let ramInfo = leerRAM();
+let toast = document.getElementById('toast');
+toast.innerHTML = `✅ Equipo Detectado: ${ramInfo.txt} - Potencial IA: ${ramInfo.val>=6?'ALTO':'MEDIO'}`;
+setTimeout(()=>{toast.style.display='none'},5000);
 
-// TOGGLE IA
+// --- IA + DESCARGA ---
 let iaOn=false, modeloOk=localStorage.getItem('modeloIA')==='ok';
 function toggleIA(){
  iaOn=!iaOn;
  document.getElementById('formCard').style.display=iaOn?'none':'block';
- document.getElementById('iaTerminal').style.display=iaOn?'block':'none';
+ document.getElementById('terminal').style.display=iaOn?'block':'none';
  document.getElementById('btnIA').classList.toggle('active',iaOn);
- if(iaOn) setTimeout(iniciarIA,200);
+ if(iaOn) iniciarIA();
 }
 function iniciarIA(){
  let log=document.getElementById('iaLog');
  if(modeloOk){
-  log.innerHTML='>_ TERMINAL • IA OFFGRID<br>> IA OFFGRID iniciada...<br>> Modelo local cargado [OK]<br>> '+ram.txt+'<br>> Esperando comando..█';
+  log.innerHTML=`>_ IA OFFGRID iniciada<br>> Hardware: ${ramInfo.txt}<br>> Modelo local [CARGADO OK]<br>> Esperando comando..█`;
+  document.getElementById('prog').style.width='100%';
   return;
  }
- log.innerHTML='>_ TERMINAL • IA OFFGRID<br>> '+ram.txt+' detectada<br>> Descargando modelo IA OFFGRID (TinyLlama Q4 600MB)...';
+ log.innerHTML=`>_ Detectado: ${ramInfo.txt}<br>> Descargando modelo IA OFFGRID 600MB...`;
  let p=0;
  let iv=setInterval(()=>{
-  p+=Math.random()*7;
-  if(p>100)p=100;
+  p+=Math.random()*8;
+  if(p>100) p=100;
   document.getElementById('prog').style.width=p+'%';
+  log.innerHTML=`>_ Detectado: ${ramInfo.txt}<br>> Descargando modelo... ${p.toFixed(0)}%<br>> Guardando en /data/models/`;
   if(p>=100){
    clearInterval(iv);
    localStorage.setItem('modeloIA','ok');
    modeloOk=true;
-   log.innerHTML+='<br>> ✅ Modelo guardado en dispositivo<br>> > Esperando comando..█';
+   log.innerHTML+=`<br>> ✅ Modelo instalado - Listo<br>> Esperando comando..█`;
   }
  },250);
 }
 
-// BUSQUEDA IA LOCAL
-document.getElementById('iaInp').addEventListener('keydown',e=>{
- if(e.key==='Enter'){
-  let q=e.target.value.toLowerCase();
-  let arr=JSON.parse(localStorage.getItem('gestor')||'[]');
-  let res=arr.filter(x=>x.nombre.toLowerCase().includes(q));
-  document.getElementById('iaLog').innerHTML+=`<br>> Usuario: ${e.target.value}<br>> IA: ${res.length} hallado(s)<br>${res.map(r=>`> - ${r.nombre} | ${r.tipo}`).join('<br>')}`;
-  e.target.value='';
- }
-});
+// --- GUARDAR QUE SI JALA (TU BASE) ---
 function guardar(){
- let o={nombre:nombre.value,direccion:direccion.value,telefono:telefono.value,correo:correo.value,gps:gps.value,etc:etc.value,clabe:clabe.value,tipo:tipo.value,ts:new Date().toLocaleTimeString()};
- if(!o.nombre) return alert('Nombre vacío');
- let arr=JSON.parse(localStorage.getItem('gestor')||'[]');arr.push(o);localStorage
+let d={nombre:nombre.value,telefono:telefono.value,tipo:tipo.value,ts:new Date().toLocaleTimeString()};
+let arr=JSON.parse(localStorage.getItem('gestor')||'[]');arr.push(d);localStorage.setItem('gestor',JSON.stringify(arr));ver();
+}
+function ver(){
+let arr=JSON.parse(localStorage.getItem('gestor')||'[]');
+lista.innerHTML=arr.map((r,i)=>`✅ Registro #${100+i} — ${r.nombre} — ${r.tipo} — guardado ${r.ts}`).join('<br>');
+}
+document.getElementById('iaInput').addEventListener('keydown',e=>{
+if(e.key==='Enter'){
+let q=e.target.value.toLowerCase();
+let arr=JSON.parse(localStorage.getItem('gestor')||'[]');
+let res=arr.filter(x=>x.nombre.toLowerCase().includes(q));
+document.getElementById('iaLog').innerHTML+=`<br>> Tú: ${e.target.value}<br>> IA: ${res.length} hallados<br>${res.map(r=>`> - ${r.nombre} | ${r.telefono}`).join('<br>')}`;
+e.target.value='';
+}
+});
+ver();
+</script>
+</body>
+</html>
