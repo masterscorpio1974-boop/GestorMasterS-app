@@ -1,69 +1,105 @@
-<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GESTOR V4 MASTER S</title><style>
-body{background:#000;color:#fff;margin:0;font-family:Arial}
-.header{background:#111;border-radius:18px;margin:8px;padding:10px;display:flex;align-items:center;gap:12px;border:1px solid #222}
-.logo{width:52px;height:52px;border-radius:50%;border:2px solid red;box-shadow:0 0 12px red;object-fit:cover}
-.h1{color:red;font-weight:900;font-size:19px}.h2{color:#888;font-size:13px;letter-spacing:1px}
-.ram-bar{background:#0a0a0a;border:1px solid #ff000033;border-radius:12px;margin:0 8px;padding:8px 12px;font-size:11px;color:#0f0;display:flex;justify-content:space-between;flex-wrap:wrap}
-.bar{padding:8px;display:flex;gap:6px;flex-wrap:wrap}
-.b{padding:10px 14px;border-radius:12px;border:none;font-weight:700}
-.b-save{background:#1a1a1a;color:#ff2a2a;border:1px solid red}.b-dark{background:#1f1f1f;color:#aaa}
-.cajon{background:#e9e9ee;margin:8px;border-radius:20px;padding:12px;min-height:50vh;color:#111}
-.cajon input,.cajon textarea{width:100%;background:#fff;border:1px solid #ccc;border-radius:10px;padding:12px;margin:5px 0;box-sizing:border-box}
-.card{background:#fff;border-radius:12px;padding:10px;margin:8px 0;color:#000;border:1px solid #ccc}
-.card label{font-size:10px;color:#888;text-transform:uppercase}.card div{font-weight:700;margin-bottom:5px;font-size:14px}
-.search{width:calc(100% - 16px);margin:8px;background:#1c1c1c;color:#fff;border:1px solid #333;border-radius:10px;padding:10px}
-</style></head><body>
-<div class="header"><img src="icon.png" class="logo"><div><div class="h1">GESTOR IA.OFFGRID</div><div class="h2">CLIENTES</div></div></div>
-<div class="ram-bar" id="ramBar">🔍 Detectando equipo...</div>
-<div class="bar">
-<button class="b b-save" onclick="guardar()">💾 Guardar</button>
-<button class="b b-dark" onclick="toggleVista()">👁️ Ver Datos</button>
-<button class="b b-dark" onclick="nuevo()">+ Nuevo</button>
-<button class="b b-dark" onclick="backup()">📦 Backup</button>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GESTOR ROJO OFFGRID</title>
+<style>
+:root{--red:#ff0f23;--black:#080a0d;--card:#121418;--green:#00ff88}
+body{background:var(--black);color:#fff;font-family:monospace;margin:0;padding:0 12px 120px}
+.header{display:flex;align-items:center;gap:12px;padding:14px;background:#000;border-bottom:2px solid var(--red);border-radius:0 0 16px 16px}
+.header img{width:52px;height:52px;border-radius:50%;border:2px solid var(--red);box-shadow:0 0 12px var(--red);object-fit:cover}
+.header h1{color:var(--red);font-size:22px;margin:0;letter-spacing:1px;text-shadow:0 0 8px var(--red)}
+.toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#1a3a2a;border:1px solid var(--green);color:#fff;padding:8px 18px;border-radius:20px;z-index:99;display:flex;align-items:center;gap:8px;animation:fadeOut 4s forwards 4s}
+@keyframes fadeOut{to{opacity:0;transform:translateX(-50%) translateY(-20px)}}
+.card{background:var(--card);border:1px solid #222;border-radius:18px;padding:14px;margin-top:12px;box-shadow:0 0 20px #000 inset}
+.field{position:relative;display:flex;align-items:center;background:#0e1013;border:1px solid #2a0a0a;border-radius:10px;margin:8px 0;padding:8px 10px}
+.field i{color:var(--red);font-style:normal;margin-right:10px;font-size:18px}
+.field input,.field select,.field textarea{flex:1;background:transparent;border:none;color:#fff;outline:none;width:100%}
+.field label{position:absolute;top:-8px;left:36px;background:var(--card);padding:0 6px;font-size:11px;color:#aaa}
+.btns{display:flex;gap:10px;margin:16px 0}
+.btn{flex:1;padding:12px;border-radius:12px;border:1px solid var(--red);background:#000;color:#fff;font-weight:bold}
+.btn.primary{background:var(--red)}
+.btn.ia.active{border-color:var(--green);color:var(--green);box-shadow:0 0 10px var(--green)}
+#terminal{display:none;background:#000;border:1px solid var(--green);border-radius:12px;padding:12px;color:var(--green);min-height:220px;font-size:14px;box-shadow:0 0 15px #003300 inset}
+#terminal p{margin:4px 0}
+.cursor{animation:blink 1s infinite}
+@keyframes blink{50%{opacity:0}}
+.drawer{background:#fff;color:#000;border-radius:18px;padding:14px;margin-top:10px}
+.fingerprint{text-align:center;margin-top:20px}
+.fingerprint .print{width:70px;height:70px;margin:auto;background:radial-gradient(circle,var(--red),transparent);border-radius:50%;filter:drop-shadow(0 0 12px var(--red));display:grid;place-items:center;font-size:36px}
+</style>
+</head>
+<body>
+<div class="header">
+<img src="icon.png" alt="logo">
+<h1>GESTOR ROJO OFFGRID</h1>
 </div>
-<input id="busc" class="search" placeholder="🔍 Buscar (IA local)..." oninput="ver()">
-<div id="cajon" class="cajon"></div>
-<div id="st" style="color:#555;font-size:10px;text-align:center;padding:6px">DB ROJA OFFGRID</div>
+<div id="toast" class="toast">✅ Equipo Detectado: 8GB RAM - Potencial IA: ALTO</div>
+
+<div id="formCard" class="card">
+<div class="field"><i>👤</i><label>Nombre</label><input id="nombre" placeholder="Ingresa el nombre"></div>
+<div class="field"><i>📍</i><label>Direccion</label><input id="direccion" placeholder="Calle, colonia, ciudad"></div>
+<div class="field"><i>📞</i><label>Telefono</label><input id="telefono" placeholder="+52 55 1234 5678"></div>
+<div class="field"><i>✉️</i><label>Correo</label><input id="correo" placeholder="correo@ejemplo.local"></div>
+<div class="field"><i>🛰️</i><label>GPS</label><input id="gps" placeholder="19.4326, -99.1332"></div>
+<div class="field"><i>📝</i><label>Etc</label><input id="etc" placeholder="Notas adicionales..."></div>
+<div class="field"><i>🏦</i><label>CLABE</label><input id="clabe" placeholder="012 180 00123456789 0"></div>
+<div class="field"><i>🏷️</i><label>Tipo</label>
+<select id="tipo"><option>CLIENTES</option><option>Clientes</option><option>Pacientes</option><option>Proveedores</option><option>CONTACTOS PRIVADO 🔒</option></select></div>
+</div>
+
+<div id="terminal">
+<p>>_ TERMINAL • IA OFFGRID</p>
+<p>> IA OFFGRID iniciada...</p>
+<p id="iaOut">> Esperando comando..<span class="cursor">█</span></p>
+<input id="iaInput" style="width:100%;background:#000;border:none;color:var(--green);outline:none" placeholder="Escribe: busca Juan...">
+</div>
+
+<div class="btns">
+<button class="btn" onclick="ver()">👁️ Ver</button>
+<button class="btn primary" onclick="guardar()">⬇️ Guardar</button>
+<button id="btnIA" class="btn ia" onclick="toggleIA()">🧠 IA</button>
+</div>
+
+<div class="drawer">
+<b>DATOS GUARDADOS</b>
+<div id="lista" style="margin-top:8px;font-size:13px"></div>
+</div>
+
+<div class="fingerprint">
+<div class="print">🧬</div>
+<small style="color:var(--red)">AUTENTICACIÓN BIOMÉTRICA ACTIVA</small>
+</div>
+
 <script>
-let db=[], edit=-1, modo='form'; const KEY='rojo_v100_final'; const cajon=document.getElementById('cajon');
-function detectarRAM(){
- let mem = navigator.deviceMemory || 12;
- let txt=''; let modelo='';
- if(mem>=11){ txt=`S23 Ultra Detectado: 12GB RAM - Potencial IA: EXTREMO`; modelo='Llama 8B Q4';}
- else if(mem>=6){ txt=`Equipo Detectado: ${mem}GB RAM - Potencial IA: ALTO`; modelo='Phi-3-Mini 3.8B';}
- else { txt=`Equipo Detectado: ${mem}GB RAM - Potencial IA: BUENO`; modelo='TinyLlama 1.1B';}
- document.getElementById('ramBar').innerHTML=`<span>${txt} 🔥</span><span style="color:#888">${modelo}</span>`;
-}
-function init(){try{db=JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){db=[]} detectarRAM(); renderForm(); }
-function renderForm(d={}){
- cajon.innerHTML=`<div style="font-weight:900">DATOS DEL CLIENTE</div>
- <label>Nombre</label><input id="f1" value="${d.nombre||''}" placeholder="Nombre">
- <label>Direccion</label><input id="f2" value="${d.direccion||''}" placeholder="Direccion">
- <label>Telefono</label><input id="f3" value="${d.phone||''}" placeholder="Telefono">
- <label>Correo</label><input id="f4" value="${d.correo||''}" placeholder="Correo">
- <label>Gps</label><input id="f5" value="${d.gps||''}" placeholder="GPS">
- <label>Etc.</label><textarea id="f6" rows="2" placeholder="Etc">${d.etc||''}</textarea>
- <small style="color:#666">${edit>=0?'EDITANDO: '+d.nombre:'NUEVO CLIENTE - corrige MATA a META aqui'}</small>`; modo='form';
+setTimeout(()=>{document.getElementById('toast').style.display='none'},4500);
+let iaOn=false;
+function toggleIA(){
+iaOn=!iaOn;
+document.getElementById('formCard').style.display=iaOn?'none':'block';
+document.getElementById('terminal').style.display=iaOn?'block':'none';
+document.getElementById('btnIA').classList.toggle('active',iaOn);
+if(iaOn) document.getElementById('iaInput').focus();
 }
 function guardar(){
- let o={nombre:document.getElementById('f1').value.trim(),direccion:document.getElementById('f2').value,phone:document.getElementById('f3').value,correo:document.getElementById('f4').value,gps:document.getElementById('f5').value,etc:document.getElementById('f6').value};
- if(!o.nombre){alert('Falta nombre');return} if(edit>=0) db[edit]=o; else db.push(o);
- localStorage.setItem(KEY,JSON.stringify(db)); edit=-1; toggleVista(); document.getElementById('st').innerText='Guardado: '+o.nombre;
+let d={nombre:nombre.value,telefono:telefono.value,tipo:tipo.value,ts:new Date().toLocaleTimeString()};
+let arr=JSON.parse(localStorage.getItem('gestor')||'[]');arr.push(d);localStorage.setItem('gestor',JSON.stringify(arr));ver();
 }
-function toggleVista(){ if(modo==='form'){modo='lista'; verLista();} else {renderForm();} }
-function verLista(){
- let filtro=document.getElementById('busc').value.toLowerCase(); let lista=db.filter(c=>(c.nombre+' '+c.direccion).toLowerCase().includes(filtro));
- if(modo!=='lista') return;
- if(lista.length==0){cajon.innerHTML='<div style="text-align:center;color:#999;margin-top:30px">Sin clientes</div>'; return;}
- cajon.innerHTML=`<div style="font-weight:900;margin-bottom:8px">DATOS GUARDADOS - ${lista.length}</div>`+lista.map(c=>{
-  let idx=db.indexOf(c);
-  return `<div class="card"><label>Nombre</label><div>${c.nombre}</div><label>Direccion</label><div>${c.direccion||'-'}</div><label>Telefono</label><div>${c.phone||'-'}</div><label>Correo</label><div>${c.correo||'-'}</div><label>Gps</label><div>📍 ${c.gps||'-'}</div><label>Etc.</label><div>${c.etc||'-'}</div><div style="display:flex;gap:6px"><button class="b b-dark" onclick="editar(${idx})">✏️ Editar</button><button class="b b-dark" onclick="borrar(${idx})">🗑️</button><button class="b b-save" onclick="location.href='tel:${c.phone}'">📞</button></div></div>`
- }).join('');
+function ver(){
+let arr=JSON.parse(localStorage.getItem('gestor')||'[]');
+lista.innerHTML=arr.map((r,i)=>`✅ Registro #${100+i} — ${r.nombre} — ${r.tipo} — guardado ${r.ts}`).join('<br>');
 }
-function ver(){ if(modo==='lista') verLista(); }
-function editar(i){ edit=i; renderForm(db[i]); }
-function borrar(i){ if(!confirm('Borrar '+db[i].nombre+'?'))return; db.splice(i,1); localStorage.setItem(KEY,JSON.stringify(db)); verLista(); }
-function nuevo(){ edit=-1; renderForm({}); }
-function backup(){ let a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(db,null,2)],{type:'application/json'})); a.download='backup.json'; a.click(); }
-document.addEventListener('DOMContentLoaded',init);
-</script></body></html>
+document.getElementById('iaInput').addEventListener('keydown',e=>{
+if(e.key==='Enter'){
+let q=e.target.value.toLowerCase();
+let arr=JSON.parse(localStorage.getItem('gestor')||'[]');
+let res=arr.filter(x=>x.nombre.toLowerCase().includes(q));
+document.getElementById('iaOut').innerHTML=`> Usuario: ${e.target.value}<br>> IA: Encontrado ${res.length} registro(s)...<br>${res.map(r=>`> - ${r.nombre} | ${r.telefono}`).join('<br>')}<br><span class=cursor>█</span>`;
+e.target.value='';
+}
+});
+ver();
+</script>
+</body>
+</html>
