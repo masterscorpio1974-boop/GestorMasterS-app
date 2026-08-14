@@ -1,0 +1,14 @@
+const KEY='gestor_rojo_db_v1';
+const get=()=>JSON.parse(localStorage.getItem(KEY)||'[]');
+const save=(d)=>{localStorage.setItem(KEY, JSON.stringify(d)); document.getElementById('stat').innerText='DB: '+d.length;};
+function guardarCliente(){
+  const n=document.getElementById('nombre').value.trim(); if(!n) return alert('Pon nombre');
+  let db=get();
+  db.push({id:Date.now(), nombre:n, direccion:direccion.value, phone:phone.value, correo:correo.value, gps:gps.value, otros:otros.value, fecha:new Date().toLocaleString()});
+  save(db); ['nombre','direccion','phone','correo','gps','otros'].forEach(id=>document.getElementById(id).value=''); consultar();
+}
+function guardar(t){ const txt=nota.value.trim(); if(!txt) return; let db=get(); db.push({id:Date.now(), tipo:t, texto:txt, fecha:new Date().toLocaleString()}); save(db); nota.value=''; consultar(); }
+function consultar(){ let db=get(); const el=document.getElementById('lista'); if(!db.length){el.innerText='Vacio'; return;} let o=''; db.slice().reverse().forEach(r=>{ if(r.nombre) o+=`[CLIENTE] ${r.nombre} | ${r.direccion} | ${r.phone}\n`; else o+=`[${r.tipo}] ${r.texto}\n`;}); el.innerText=o; }
+function backup(){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(get(),null,2)],{type:'application/json'})); a.download=`respaldo_ROJO_${Date.now()}.json`; a.click(); }
+function informe(){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([document.getElementById('lista').innerText],{type:'text/plain'})); a.download=`informe_ROJO_${Date.now()}.txt`; a.click(); }
+consultar();
