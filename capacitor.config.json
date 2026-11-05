@@ -2,5 +2,8 @@
   "appId": "com.masters.gestormastersrojo",
   "appName": "GestorMasterS ROJO",
   "webDir": "www",
-  "bundledWebRuntime": false
+  "server": {
+    "cleartext": true,
+    "allowNavigation": ["127.0.0.1", "localhost"]
+  }
 }
