@@ -120,16 +120,29 @@ function ver(){
 let arr=JSON.parse(localStorage.getItem('gestor')||'[]');
 lista.innerHTML=arr.map((r,i)=>`✅ Registro #${100+i} — ${r.nombre} — ${r.tipo} — guardado ${r.ts}`).join('<br>');
 }
-document.getElementById('iaInput').addEventListener('keydown',e=>{
-if(e.key==='Enter'){
-let q=e.target.value.toLowerCase();
-let arr=JSON.parse(localStorage.getItem('gestor')||'[]');
-let res=arr.filter(x=>x.nombre.toLowerCase().includes(q));
-document.getElementById('iaLog').innerHTML+=`<br>> Tú: ${e.target.value}<br>> IA: ${res.length} hallados<br>${res.map(r=>`> - ${r.nombre} | ${r.telefono}`).join('<br>')}`;
+document.getElementById('iaInput').addEventListener('keydown', async e=>{
+if(e.key!=='Enter') return;
+let pregunta = e.target.value;
 e.target.value='';
+let log = document.getElementById('iaLog');
+log.innerHTML += `<br>> Tú: ${pregunta}<br>> IA: Pensando con Ollama...`;
+
+try{
+  let res = await fetch("http://127.0.0.1:11434/api/generate",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({
+      model:"llama3.2:latest",
+      prompt:"Eres el Gestor Rojo. Mis contactos son: "+localStorage.getItem('gestor')+". Pregunta del usuario: "+pregunta,
+      stream:false
+    })
+  });
+  let data = await res.json();
+  log.innerHTML += `<br>> IA: ${data.response}`;
+}catch(err){
+  // Si Ollama no está prendido, busca como antes
+  let arr=JSON.parse(localStorage.getItem('gestor')||'[]');
+  let res=arr.filter(x=>x.nombre.toLowerCase().includes(pregunta.toLowerCase()));
+  log.innerHTML += `<br>> IA (sin Ollama): ${res.length} hallados<br>${res.map(r=>`> - ${r.nombre} | ${r.telefono}`).join('<br>')}`;
 }
 });
-ver();
-</script>
-</body>
-</html>
